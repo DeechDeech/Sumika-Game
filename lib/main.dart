@@ -2,34 +2,26 @@ import 'package:flutter/material.dart';
 
 import 'game/game_home_page.dart';
 
+/// Flutter アプリを起動し、ルートウィジェットを画面に表示します。
 void main() {
   runApp(const SumikaApp());
 }
 
 class SumikaApp extends StatelessWidget {
+  /// アプリのルートウィジェットを作成します。
   const SumikaApp({super.key});
 
-  // This widget is the root of your application.
+  /// アプリ名、配色テーマ、最初に表示するゲーム画面を設定します。
+  // このウィジェットはアプリのルートです。
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'ころころ果樹園',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
+        // ここではアプリ全体のテーマを設定します。
+        // ホットリロードでテーマの変更をすぐに確認できます。
+        // ホットリロードではアプリの状態が保たれます。
+        // 状態も初期化したい場合は、ホットリスタートを使います。
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFFCB654C),
@@ -43,19 +35,17 @@ class SumikaApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
+  /// Flutter の初期カウンターデモ用画面を作成します（現在は未使用）。
   const MyHomePage({super.key, required this.title});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
+  // この画面は StatefulWidget で、下の State オブジェクトが表示状態を管理します。
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+  // このクラスは親ウィジェットから渡される値（ここではタイトル）を保持します。
+  // ウィジェットは不変オブジェクトのため、フィールドには final を付けます。
 
   final String title;
 
+  /// 初期カウンターデモの状態オブジェクトを作成します。
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
@@ -63,52 +53,46 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
+  /// デモ画面のボタン操作に応じてカウンターを 1 増やします。
   void _incrementCounter() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
+      // setState を呼ぶと、状態が変わったことを Flutter に通知します。
+      // 下の build メソッドが再実行され、新しい値が画面に反映されます。
+      // setState を呼ばずに _counter だけを変更した場合、build は再実行されず、
+      // 画面上では何も変化しません。
       _counter++;
     });
   }
 
+  /// 初期カウンターデモの画面を組み立てます（現在は未使用）。
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
+    // このメソッドは、上の _incrementCounter などから setState が呼ばれるたびに
+    // 再実行されます。
     //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    // Flutter は build メソッドを高速に再実行できるよう最適化されています。
+    // そのため、個々のウィジェットを手作業で更新せず、必要な画面を再構築できます。
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
+        // ここを Colors.amber などに変更してホットリロードすると、
+        // 他の色はそのままで AppBar の色だけが変わります。
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
+        // App.build が作成した MyHomePage のタイトルを AppBar に表示します。
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+        // Center は子ウィジェットを親の中央に配置します。
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
+          // Column は子ウィジェットを縦方向に並べ、横幅は子に合わせます。
+          // 通常は親の高さに合わせて配置されます。
           //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
+          // Column には、子の配置やサイズを調整するプロパティがあります。
+          // mainAxisAlignment で主軸方向の配置を指定します。
+          // Column の主軸は縦方向なので、ここでは子を縦方向の中央に配置します。
+          // 交差軸は横方向です。
           //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
+          // IDE の「Toggle Debug Paint」を選ぶか、コンソールで `p` キーを押すと、
+          // 各ウィジェットの枠線を表示できます。
           mainAxisAlignment: .center,
           children: [
             const Text('You have pushed the button this many times:'),

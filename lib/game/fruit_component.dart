@@ -5,6 +5,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'fruit_kind.dart';
 
 class FruitComponent extends BodyComponent with ContactCallbacks {
+  /// 種類に対応する大きさ・色・物理形状を持つ果実を作成します。
   FruitComponent({
     required this.kind,
     required Vector2 position,
@@ -27,6 +28,7 @@ class FruitComponent extends BodyComponent with ContactCallbacks {
   onFruitContact;
   bool isMerging = false;
 
+  /// 接触イベントから果実コンポーネントを識別できるよう body に登録します。
   @override
   Body createBody() {
     final fruitBody = super.createBody();
@@ -34,6 +36,7 @@ class FruitComponent extends BodyComponent with ContactCallbacks {
     return fruitBody;
   }
 
+  /// 他の果実との接触をゲーム本体へ通知し、合体判定を依頼します。
   @override
   void beginContact(Object other, Contact contact) {
     if (other case final FruitComponent otherFruit) {

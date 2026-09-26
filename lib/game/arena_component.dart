@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flame_forge2d/flame_forge2d.dart';
 
 class ArenaComponent extends BodyComponent {
+  /// 指定した大きさの、床と左右の壁を持つ静的な箱を作成します。
   ArenaComponent({required double width, required double height})
     : super(
         bodyDef: BodyDef(type: BodyType.static),
@@ -10,6 +11,7 @@ class ArenaComponent extends BodyComponent {
         paint: Paint()..color = const Color(0xFF536A5D),
       );
 
+  /// 箱の床と左右の壁に使う物理フィクスチャを作成します。
   static List<FixtureDef> _fixtures(double halfWidth, double halfHeight) {
     const wallThickness = 0.42;
     final floorY = halfHeight - wallThickness / 2;
@@ -33,6 +35,7 @@ class ArenaComponent extends BodyComponent {
     ];
   }
 
+  /// 中心位置と半寸法を指定した長方形の物理形状を作成します。
   static FixtureDef _box({
     required double halfWidth,
     required double halfHeight,

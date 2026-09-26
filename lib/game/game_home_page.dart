@@ -7,8 +7,10 @@ import 'fruit_kind.dart';
 import 'sumika_game.dart';
 
 class GameHomePage extends StatefulWidget {
+  /// Flame のゲーム画面を表示するページを作成します。
   const GameHomePage({super.key});
 
+  /// ゲーム画面の状態オブジェクトを作成します。
   @override
   State<GameHomePage> createState() => _GameHomePageState();
 }
@@ -16,12 +18,14 @@ class GameHomePage extends StatefulWidget {
 class _GameHomePageState extends State<GameHomePage> {
   final SumikaGame _game = SumikaGame();
 
+  /// 画面を閉じるときに Flame ゲームのリソースを解放します。
   @override
   void dispose() {
     _game.dispose();
     super.dispose();
   }
 
+  /// スコア、次の果実、ゲーム領域、リセット操作を配置します。
   @override
   Widget build(BuildContext context) {
     const ink = Color(0xFF263A35);
