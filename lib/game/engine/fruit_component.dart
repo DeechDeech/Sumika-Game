@@ -4,6 +4,12 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 
 import 'fruit_kind.dart';
 
+abstract final class FruitComponentConstants {
+  static const double density = 1;
+  static const double friction = 0.42;
+  static const double restitution = 0.12;
+}
+
 class FruitComponent extends BodyComponent with ContactCallbacks {
   /// 種類に対応する大きさ・色・物理形状を持つ果実を作成します。
   FruitComponent({
@@ -15,9 +21,9 @@ class FruitComponent extends BodyComponent with ContactCallbacks {
          fixtureDefs: [
            FixtureDef(
              CircleShape(radius: kind.radius),
-             density: 1,
-             friction: 0.42,
-             restitution: 0.12,
+             density: FruitComponentConstants.density,
+             friction: FruitComponentConstants.friction,
+             restitution: FruitComponentConstants.restitution,
            ),
          ],
          paint: Paint()..color = kind.color,

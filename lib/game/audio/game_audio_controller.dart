@@ -1,0 +1,255 @@
+import 'dart:async';
+
+import 'package:flame_audio/flame_audio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+
+import '../engine/fruit_kind.dart';
+
+abstract final class GameAudioConstants {
+  static const String backgroundMusicAsset = 'background_music.mp3';
+  static const String mergeSoundAsset = 'fruit_merge.mp3';
+  static const double defaultBgmVolume = 0.35;
+  static const double defaultSeVolume = 0.8;
+  static const double minimumVolume = 0;
+  static const double maximumVolume = 1;
+  static const Duration bgmVolumeUpdateInterval = Duration(milliseconds: 60);
+  static const int maximumConcurrentSePlayers = 4;
+  static const bool audioInitiallyAvailable = true;
+  static const bool bgmObserverInitiallyInitialized = false;
+  static const int initialPlaybackGeneration = 0;
+
+  // 種類別の効果音を追加したら、ここで果実ごとの音源へ差し替えます。
+  static const Map<FruitKind, String> mergeSoundByFruit = {
+    FruitKind.berry: mergeSoundAsset,
+    FruitKind.plum: mergeSoundAsset,
+    FruitKind.citrus: mergeSoundAsset,
+    FruitKind.pear: mergeSoundAsset,
+    FruitKind.peach: mergeSoundAsset,
+    FruitKind.melon: mergeSoundAsset,
+    FruitKind.giant: mergeSoundAsset,
+  };
+}
+
+class GameAudioController {
+  /// コントローラーをアプリ内で一つだけ使うための非公開コンストラクターです。
+  GameAudioController._();
+
+  /// アプリ全体で共有する音量状態と音声プレイヤー管理を返します。
+  static final GameAudioController instance = GameAudioController._();
+
+  final ValueNotifier<double> bgmVolume = ValueNotifier<double>(
+    GameAudioConstants.defaultBgmVolume,
+  );
+  final ValueNotifier<double> seVolume = ValueNotifier<double>(
+    GameAudioConstants.defaultSeVolume,
+  );
+
+  Future<void>? _assetLoading;
+  final Map<String, AudioPool> _mergeSoundPools = {};
+  Future<void>? _soundPoolLoading;
+  bool _bgmAvailable = GameAudioConstants.audioInitiallyAvailable;
+  bool _seAvailable = GameAudioConstants.audioInitiallyAvailable;
+  bool _bgmObserverInitialized =
+      GameAudioConstants.bgmObserverInitiallyInitialized;
+  int _playbackGeneration = GameAudioConstants.initialPlaybackGeneration;
+  final Stopwatch _bgmVolumeClock = Stopwatch()..start();
+  Duration _lastBgmVolumeUpdate = Duration.zero;
+  Timer? _bgmVolumeUpdateTimer;
+
+  /// 音源を先読みし、ゲーム用 BGM をループ再生します。
+  Future<void> start() async {
+    final generation = ++_playbackGeneration;
+    try {
+      await (_assetLoading ??= FlameAudio.audioCache.loadAll([
+        GameAudioConstants.backgroundMusicAsset,
+        GameAudioConstants.mergeSoundAsset,
+      ]));
+    } on TimeoutException catch (error) {
+      _bgmAvailable = false;
+      _seAvailable = false;
+      debugPrint('Audio asset loading timed out: $error');
+      return;
+    } on MissingPluginException catch (error) {
+      _bgmAvailable = false;
+      _seAvailable = false;
+      debugPrint('Audio playback is unavailable on this platform: $error');
+      return;
+    } on PlatformException catch (error) {
+      _bgmAvailable = false;
+      _seAvailable = false;
+      debugPrint('Audio asset loading failed: $error');
+      return;
+    }
+
+    if (generation != _playbackGeneration) return;
+    await _startBgm(generation);
+    if (generation == _playbackGeneration) {
+      await _prepareMergeSounds();
+    }
+  }
+
+  /// BGM プレイヤーを初期化して再生し、準備タイムアウトを音声機能内で処理します。
+  Future<void> _startBgm(int generation) async {
+    if (!_bgmAvailable) return;
+
+    try {
+      if (!_bgmObserverInitialized) {
+        await FlameAudio.bgm.initialize();
+        _bgmObserverInitialized = true;
+      }
+      if (generation != _playbackGeneration || FlameAudio.bgm.isPlaying) return;
+
+      await FlameAudio.bgm.play(
+        GameAudioConstants.backgroundMusicAsset,
+        volume: bgmVolume.value,
+      );
+      if (generation != _playbackGeneration) {
+        await FlameAudio.bgm.stop();
+      }
+    } on TimeoutException catch (error) {
+      _bgmAvailable = false;
+      debugPrint('BGM player preparation timed out: $error');
+    } on MissingPluginException catch (error) {
+      _bgmAvailable = false;
+      debugPrint('BGM playback is unavailable: $error');
+    } on PlatformException catch (error) {
+      _bgmAvailable = false;
+      debugPrint('BGM playback failed: $error');
+    }
+  }
+
+  /// 果実種類別の SE を、再利用可能なプレイヤープールへ事前登録します。
+  Future<void> _prepareMergeSounds() async {
+    if (!_seAvailable || _mergeSoundPools.isNotEmpty) return;
+
+    try {
+      await (_soundPoolLoading ??= _createMergeSoundPools());
+    } on TimeoutException catch (error) {
+      _seAvailable = false;
+      debugPrint('Merge sound pool preparation timed out: $error');
+    } on MissingPluginException catch (error) {
+      _seAvailable = false;
+      debugPrint('Sound effects are unavailable: $error');
+    } on PlatformException catch (error) {
+      _seAvailable = false;
+      debugPrint('Merge sound pool preparation failed: $error');
+    }
+  }
+
+  /// 各 SE ファイルにつき一つのプレイヤープールを生成します。
+  Future<void> _createMergeSoundPools() async {
+    final soundAssets = GameAudioConstants.mergeSoundByFruit.values.toSet();
+    for (final asset in soundAssets) {
+      _mergeSoundPools[asset] = await FlameAudio.createPool(
+        asset,
+        minPlayers: 1,
+        maxPlayers: GameAudioConstants.maximumConcurrentSePlayers,
+      );
+    }
+  }
+
+  /// ゲーム画面を離れるときに BGM を停止します。
+  Future<void> stop() async {
+    _playbackGeneration++;
+    if (!_bgmAvailable || !FlameAudio.bgm.isPlaying) return;
+
+    try {
+      await FlameAudio.bgm.stop();
+    } on MissingPluginException catch (error) {
+      _bgmAvailable = false;
+      debugPrint('BGM stop is unavailable: $error');
+    } on TimeoutException catch (error) {
+      _bgmAvailable = false;
+      debugPrint('BGM stop timed out: $error');
+    } on PlatformException catch (error) {
+      debugPrint('BGM stop failed: $error');
+    }
+  }
+
+  /// BGM 音量を即時表示し、再生中のプレイヤーへ間引いて反映します。
+  void setBgmVolume(double volume) {
+    final normalizedVolume = _normalizeVolume(volume);
+    bgmVolume.value = normalizedVolume;
+    if (!_bgmAvailable || !FlameAudio.bgm.isPlaying) return;
+
+    _bgmVolumeUpdateTimer?.cancel();
+    final elapsed = _bgmVolumeClock.elapsed - _lastBgmVolumeUpdate;
+    final remaining = GameAudioConstants.bgmVolumeUpdateInterval - elapsed;
+    if (remaining <= Duration.zero) {
+      _lastBgmVolumeUpdate = _bgmVolumeClock.elapsed;
+      unawaited(_applyBgmVolume());
+      return;
+    }
+
+    _bgmVolumeUpdateTimer = Timer(remaining, () {
+      _bgmVolumeUpdateTimer = null;
+      _lastBgmVolumeUpdate = _bgmVolumeClock.elapsed;
+      unawaited(_applyBgmVolume());
+    });
+  }
+
+  /// スライダー操作終了時に保留中の最新 BGM 音量を適用します。
+  void flushBgmVolume() {
+    _bgmVolumeUpdateTimer?.cancel();
+    _bgmVolumeUpdateTimer = null;
+    if (!_bgmAvailable || !FlameAudio.bgm.isPlaying) return;
+
+    _lastBgmVolumeUpdate = _bgmVolumeClock.elapsed;
+    unawaited(_applyBgmVolume());
+  }
+
+  /// 現在の音量値をネイティブの BGM プレイヤーへ送ります。
+  Future<void> _applyBgmVolume() async {
+    if (!_bgmAvailable || !FlameAudio.bgm.isPlaying) return;
+
+    try {
+      await FlameAudio.bgm.audioPlayer.setVolume(bgmVolume.value);
+    } on MissingPluginException catch (error) {
+      _bgmAvailable = false;
+      debugPrint('BGM volume control is unavailable: $error');
+    } on TimeoutException catch (error) {
+      _bgmAvailable = false;
+      debugPrint('BGM volume update timed out: $error');
+    } on PlatformException catch (error) {
+      debugPrint('BGM volume update failed: $error');
+    }
+  }
+
+  /// SE 音量を 0.0〜1.0 に収め、次回以降の効果音に適用します。
+  void setSeVolume(double volume) {
+    seVolume.value = _normalizeVolume(volume);
+  }
+
+  /// 合体した果実の種類に対応する効果音を現在の SE 音量で再生します。
+  Future<void> playMergeSound(FruitKind kind) async {
+    if (!_seAvailable || seVolume.value <= GameAudioConstants.minimumVolume) {
+      return;
+    }
+
+    await _prepareMergeSounds();
+    if (!_seAvailable) return;
+
+    final soundAsset =
+        GameAudioConstants.mergeSoundByFruit[kind] ??
+        GameAudioConstants.mergeSoundAsset;
+    try {
+      await _mergeSoundPools[soundAsset]?.start(volume: seVolume.value);
+    } on MissingPluginException catch (error) {
+      _seAvailable = false;
+      debugPrint('Sound effects are unavailable: $error');
+    } on TimeoutException catch (error) {
+      _seAvailable = false;
+      debugPrint('Merge sound playback timed out: $error');
+    } on PlatformException catch (error) {
+      _seAvailable = false;
+      debugPrint('Merge sound playback failed: $error');
+    }
+  }
+
+  /// BGM 音量を 0.0〜1.0 の範囲へ制限します。
+  double _normalizeVolume(double volume) => volume.clamp(
+    GameAudioConstants.minimumVolume,
+    GameAudioConstants.maximumVolume,
+  );
+}

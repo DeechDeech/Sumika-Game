@@ -13,14 +13,24 @@ Chrome で試す場合は `flutter run -d chrome` を使います。Android 実�
 
 ## カスタマイズ箇所
 
-- `lib/game/fruit_kind.dart`: フルーツの種類、色、当たり判定の半径
-- `lib/game/fruit_component.dart`: フルーツの物理ボディと現在の図形描画
-- `lib/game/arena_component.dart`: 箱の壁・床と背景の見た目
-- `lib/game/sumika_game.dart`: 重力、投下、合体、スコア
+- `lib/game/engine/fruit_kind.dart`: フルーツの種類、色、当たり判定の半径
+- `lib/game/engine/fruit_component.dart`: フルーツの物理ボディと現在の図形描画
+- `lib/game/engine/arena_component.dart`: 箱の壁・床と背景の見た目
+- `lib/game/engine/sumika_game.dart`: 重力、投下、合体、スコア
+- `lib/game/audio/game_audio_controller.dart`: BGM/SE 再生、音量、果実種類別SE設定
+- `lib/game/presentation/game_home_page.dart`: Flame ゲームの所有と画面ライフサイクル
+- `lib/game/presentation/game_home_page_layout.dart`: ゲーム画面のレイアウト
+- `lib/game/presentation/game_home_page_constants.dart`: 画面内で共有する表示定数
+- `lib/game/presentation/widgets/`: ヘッダー、スコア、盤面、操作 UI、音量設定
+- `lib/app/app_theme.dart`: アプリ全体のテーマと色
+- `lib/app/sumika_app.dart`: MaterialApp の設定
+- `assets/audio/`: 再生する BGM と効果音
 - `assets/images/fruits/`: 差し替え用フルーツ画像
 - `assets/images/backgrounds/`: 差し替え用背景画像
 
-画像を追加したら `pubspec.yaml` の `flutter.assets` に登録します。画像の見た目と Forge2D の当たり判定は別々なので、画像を変更しても物理形状は `fruit_kind.dart` で調整できます。
+画像を追加したら `pubspec.yaml` の `flutter.assets` に登録します。画像の見た目と Forge2D の当たり判定は別々なので、画像を変更しても物理形状は `lib/game/engine/fruit_kind.dart` で調整できます。
+
+ゲーム中は指定 BGM をループ再生し、果実が合体した時に効果音を再生します。画面下部の音量設定ボタンから BGM と効果音の音量を別々に調節できます。種類別の効果音は `GameAudioConstants.mergeSoundByFruit` で割り当てます。
 
 ## チェック
 

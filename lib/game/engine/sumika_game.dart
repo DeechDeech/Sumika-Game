@@ -6,23 +6,52 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/foundation.dart';
 
 import 'arena_component.dart';
+import 'fruit_drop_cooldown.dart';
 import 'fruit_component.dart';
 import 'fruit_kind.dart';
 
+abstract final class SumikaGameConstants {
+  static const double gravityX = 0;
+  static const double gravityY = 10;
+  static const double cameraZoom = 12;
+  static const Color backgroundColor = Color(0xFFDCE5D5);
+  static const double horizontalDropMargin = 0.5;
+  static const double verticalSpawnMargin = 1.2;
+  static const double worldCenterDivisor = 2;
+  static const int startingFruitVarietyCount = 3;
+  static const int initialScore = 0;
+  static const int scoreTierOffset = 1;
+  static const int scorePerTier = 10;
+  static const FruitKind firstFruit = FruitKind.berry;
+}
+
 class SumikaGame extends Forge2DGame with TapCallbacks {
   /// 下向きの重力とゲーム用カメラを設定した物理ゲームを作成します。
-  SumikaGame() : super(gravity: Vector2(0, 10), zoom: 12);
+  SumikaGame({this.onFruitMerged})
+    : super(
+        gravity: Vector2(
+          SumikaGameConstants.gravityX,
+          SumikaGameConstants.gravityY,
+        ),
+        zoom: SumikaGameConstants.cameraZoom,
+      );
 
-  final ValueNotifier<int> score = ValueNotifier<int>(0);
+  /// 果実の合体成立時に、合体した果実の種類を通知します。
+  final void Function(FruitKind kind)? onFruitMerged;
+
+  final ValueNotifier<int> score = ValueNotifier<int>(
+    SumikaGameConstants.initialScore,
+  );
   final ValueNotifier<FruitKind> nextFruit = ValueNotifier<FruitKind>(
-    FruitKind.berry,
+    SumikaGameConstants.firstFruit,
   );
   final Random _random = Random();
   final List<(FruitComponent, FruitComponent)> _pendingMerges = [];
+  final FruitDropCooldown _dropCooldown = FruitDropCooldown();
 
   /// ゲーム領域の背景色を返します。
   @override
-  Color backgroundColor() => const Color(0xFFDCE5D5);
+  Color backgroundColor() => SumikaGameConstants.backgroundColor;
 
   /// Flame の読み込み後に、果実を受け止める箱を物理世界へ追加します。
   @override
@@ -35,6 +64,8 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
   /// タップ位置をワールド座標へ変換し、その位置に果実を投下します。
   @override
   void onTapDown(TapDownEvent event) {
+    if (!_dropCooldown.tryStart()) return;
+
     final target = screenToWorld(event.localPosition);
     _dropFruit(target.x);
   }
@@ -43,17 +74,19 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
   @override
   void update(double dt) {
     super.update(dt);
+    _dropCooldown.advance(dt);
     _processPendingMerges();
   }
 
   /// 盤面の果実と合体予約を消し、スコアと次の果実を初期状態へ戻します。
   void reset() {
     _pendingMerges.clear();
+    _dropCooldown.reset();
     for (final fruit in _fruits) {
       fruit.removeFromParent();
     }
-    score.value = 0;
-    nextFruit.value = FruitKind.berry;
+    score.value = SumikaGameConstants.initialScore;
+    nextFruit.value = SumikaGameConstants.firstFruit;
   }
 
   /// 物理ワールドに現在登録されている果実だけを取り出します。
@@ -68,12 +101,15 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
   void _dropFruit(double targetX) {
     final kind = nextFruit.value;
     final worldSize = _worldSize;
-    final margin = kind.radius + 0.5;
+    final margin = kind.radius + SumikaGameConstants.horizontalDropMargin;
     final safeX = targetX.clamp(
-      -worldSize.x / 2 + margin,
-      worldSize.x / 2 - margin,
+      -worldSize.x / SumikaGameConstants.worldCenterDivisor + margin,
+      worldSize.x / SumikaGameConstants.worldCenterDivisor - margin,
     );
-    final spawnY = -worldSize.y / 2 + kind.radius + 1.2;
+    final spawnY =
+        -worldSize.y / SumikaGameConstants.worldCenterDivisor +
+        kind.radius +
+        SumikaGameConstants.verticalSpawnMargin;
 
     world.add(
       FruitComponent(
@@ -83,7 +119,9 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
       ),
     );
 
-    final startingKinds = FruitKind.values.take(3).toList();
+    final startingKinds = FruitKind.values
+        .take(SumikaGameConstants.startingFruitVarietyCount)
+        .toList();
     nextFruit.value = startingKinds[_random.nextInt(startingKinds.length)];
   }
 
@@ -108,8 +146,10 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
 
       final nextKind = first.kind.next!;
       final mergePosition = Vector2(
-        (first.position.x + second.position.x) / 2,
-        (first.position.y + second.position.y) / 2,
+        (first.position.x + second.position.x) /
+            SumikaGameConstants.worldCenterDivisor,
+        (first.position.y + second.position.y) /
+            SumikaGameConstants.worldCenterDivisor,
       );
       first.removeFromParent();
       second.removeFromParent();
@@ -120,7 +160,10 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
           onFruitContact: _queueMerge,
         ),
       );
-      score.value += (first.kind.index + 1) * 10;
+      score.value +=
+          (first.kind.index + SumikaGameConstants.scoreTierOffset) *
+          SumikaGameConstants.scorePerTier;
+      onFruitMerged?.call(first.kind);
     }
     _pendingMerges.clear();
   }
