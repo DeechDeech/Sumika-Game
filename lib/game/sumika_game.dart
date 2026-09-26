@@ -17,6 +17,7 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
     FruitKind.berry,
   );
   final Random _random = Random();
+  final List<(FruitComponent, FruitComponent)> _pendingMerges = [];
 
   @override
   Color backgroundColor() => const Color(0xFFDCE5D5);
@@ -24,7 +25,10 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    await world.add(ArenaComponent(width: size.x, height: size.y));
+    final worldSize = _worldSize;
+    await world.add(
+      ArenaComponent(width: worldSize.x, height: worldSize.y),
+    );
   }
 
   @override
@@ -36,10 +40,11 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
   @override
   void update(double dt) {
     super.update(dt);
-    _mergeTouchingFruit();
+    _processPendingMerges();
   }
 
   void reset() {
+    _pendingMerges.clear();
     for (final fruit in _fruits) {
       fruit.removeFromParent();
     }
@@ -50,51 +55,66 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
   Iterable<FruitComponent> get _fruits =>
       world.children.whereType<FruitComponent>();
 
+  Vector2 get _worldSize => Vector2(
+    size.x / camera.viewfinder.zoom,
+    size.y / camera.viewfinder.zoom,
+  );
+
   void _dropFruit(double targetX) {
     final kind = nextFruit.value;
+    final worldSize = _worldSize;
     final margin = kind.radius + 0.5;
-    final safeX = targetX.clamp(-size.x / 2 + margin, size.x / 2 - margin);
-    final spawnY = -size.y / 2 + kind.radius + 1.2;
+    final safeX = targetX.clamp(
+      -worldSize.x / 2 + margin,
+      worldSize.x / 2 - margin,
+    );
+    final spawnY = -worldSize.y / 2 + kind.radius + 1.2;
 
-    world.add(FruitComponent(kind: kind, position: Vector2(safeX, spawnY)));
+    world.add(
+      FruitComponent(
+        kind: kind,
+        position: Vector2(safeX, spawnY),
+        onFruitContact: _queueMerge,
+      ),
+    );
 
     final startingKinds = FruitKind.values.take(3).toList();
     nextFruit.value = startingKinds[_random.nextInt(startingKinds.length)];
   }
 
-  void _mergeTouchingFruit() {
-    final fruits = _fruits.where((fruit) => !fruit.isMerging).toList();
-
-    for (var firstIndex = 0; firstIndex < fruits.length; firstIndex++) {
-      final first = fruits[firstIndex];
-      final nextKind = first.kind.next;
-      if (nextKind == null || first.isRemoving) continue;
-
-      for (
-        var secondIndex = firstIndex + 1;
-        secondIndex < fruits.length;
-        secondIndex++
-      ) {
-        final second = fruits[secondIndex];
-        if (second.kind != first.kind || second.isRemoving) continue;
-
-        final dx = first.position.x - second.position.x;
-        final dy = first.position.y - second.position.y;
-        final touchDistance = (first.kind.radius + second.kind.radius) * 1.02;
-        if (dx * dx + dy * dy > touchDistance * touchDistance) continue;
-
-        first.isMerging = true;
-        second.isMerging = true;
-        final mergePosition = Vector2(
-          (first.position.x + second.position.x) / 2,
-          (first.position.y + second.position.y) / 2,
-        );
-        first.removeFromParent();
-        second.removeFromParent();
-        world.add(FruitComponent(kind: nextKind, position: mergePosition));
-        score.value += (first.kind.index + 1) * 10;
-        break;
-      }
+  void _queueMerge(FruitComponent first, FruitComponent second) {
+    if (first.kind != second.kind ||
+        first.kind.next == null ||
+        first.isMerging ||
+        second.isMerging) {
+      return;
     }
+
+    first.isMerging = true;
+    second.isMerging = true;
+    _pendingMerges.add((first, second));
+  }
+
+  void _processPendingMerges() {
+    for (final (first, second) in _pendingMerges) {
+      if (first.isRemoving || second.isRemoving) continue;
+
+      final nextKind = first.kind.next!;
+      final mergePosition = Vector2(
+        (first.position.x + second.position.x) / 2,
+        (first.position.y + second.position.y) / 2,
+      );
+      first.removeFromParent();
+      second.removeFromParent();
+      world.add(
+        FruitComponent(
+          kind: nextKind,
+          position: mergePosition,
+          onFruitContact: _queueMerge,
+        ),
+      );
+      score.value += (first.kind.index + 1) * 10;
+    }
+    _pendingMerges.clear();
   }
 }
