@@ -7,7 +7,6 @@ import 'game_home_page_constants.dart';
 import 'widgets/game_board.dart';
 import 'widgets/game_controls.dart';
 import 'widgets/game_header.dart';
-import 'widgets/score_panel.dart';
 
 class GameHomePageLayout extends StatelessWidget {
   /// ゲーム状態を受け取り、画面全体のレイアウトを作成します。
@@ -45,11 +44,7 @@ class GameHomePageLayout extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      GameHeader(nextFruit: game.nextFruit),
-                      const SizedBox(
-                        height: GameHomePageConstants.headerToScoreSpacing,
-                      ),
-                      ScorePanel(score: game.score),
+                      GameHeader(nextFruit: game.nextFruit, score: game.score),
                       const SizedBox(
                         height: GameHomePageConstants.scoreToBoardSpacing,
                       ),

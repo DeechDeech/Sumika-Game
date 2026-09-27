@@ -6,8 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sumika_game/app/sumika_app.dart';
 import 'package:sumika_game/game/audio/game_audio_controller.dart';
 import 'package:sumika_game/game/engine/fruit_drop_cooldown.dart';
+import 'package:sumika_game/game/engine/fruit_component.dart';
 import 'package:sumika_game/game/engine/fruit_kind.dart';
 import 'package:sumika_game/game/engine/sumika_game.dart';
+import 'package:sumika_game/game/presentation/widgets/game_header.dart';
 import 'package:sumika_game/game/presentation/widgets/game_audio_settings_sheet.dart';
 
 abstract final class WidgetTestConstants {
@@ -37,12 +39,37 @@ void main() {
 
     expect(cooldown.tryStart(), isTrue);
     expect(cooldown.tryStart(), isFalse);
+    expect(cooldown.isReady, isFalse);
 
     cooldown.advance(halfCooldown);
     expect(cooldown.tryStart(), isFalse);
 
     cooldown.advance(halfCooldown);
     expect(cooldown.tryStart(), isTrue);
+    expect(cooldown.isReady, isFalse);
+  });
+
+  test('fruit placement rejects overlap but allows edge contact', () {
+    final radius = FruitKind.fruit01.radius;
+
+    expect(
+      FruitComponent.circlesOverlap(
+        firstPosition: Vector2.zero(),
+        firstRadius: radius,
+        secondPosition: Vector2.zero(),
+        secondRadius: radius,
+      ),
+      isTrue,
+    );
+    expect(
+      FruitComponent.circlesOverlap(
+        firstPosition: Vector2.zero(),
+        firstRadius: radius,
+        secondPosition: Vector2(radius * 2, 0),
+        secondRadius: radius,
+      ),
+      isFalse,
+    );
   });
 
   test('fruit kinds increase by radius and have five drop choices', () {
@@ -88,6 +115,59 @@ void main() {
     expect(game.currentFruit.value, SumikaGameConstants.firstFruit);
     expect(startingKinds, contains(game.nextFruit.value));
     game.dispose();
+  });
+
+  testWidgets('next preview size and center stay fixed', (tester) async {
+    final nextFruit = ValueNotifier<FruitKind>(FruitKind.fruit01);
+    final score = ValueNotifier<int>(0);
+    addTearDown(nextFruit.dispose);
+    addTearDown(score.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: GameHeader(nextFruit: nextFruit, score: score),
+          ),
+        ),
+      ),
+    );
+    final cardSize = tester.getSize(
+      find.byKey(GameHeaderConstants.nextCardKey),
+    );
+    final slotCenter = tester.getCenter(
+      find.byKey(GameHeaderConstants.nextFruitSlotKey),
+    );
+    final fruitCenter = tester.getCenter(
+      find.byKey(GameHeaderConstants.nextFruitKey),
+    );
+    final initialFruitSize = tester.getSize(
+      find.byKey(GameHeaderConstants.nextFruitKey),
+    );
+
+    nextFruit.value = FruitKind.fruit05;
+    await tester.pump();
+
+    expect(
+      tester.getSize(find.byKey(GameHeaderConstants.nextCardKey)),
+      cardSize,
+    );
+    expect(
+      tester.getCenter(find.byKey(GameHeaderConstants.nextFruitSlotKey)),
+      slotCenter,
+    );
+    expect(
+      tester.getCenter(find.byKey(GameHeaderConstants.nextFruitKey)),
+      fruitCenter,
+    );
+    final largestFruitSize = tester.getSize(
+      find.byKey(GameHeaderConstants.nextFruitKey),
+    );
+    expect(largestFruitSize.width, greaterThan(initialFruitSize.width));
+    expect(
+      largestFruitSize.width,
+      lessThanOrEqualTo(GameHeaderConstants.nextFruitSlotSize),
+    );
   });
 
   test('ship background is included in the asset manifest', () async {

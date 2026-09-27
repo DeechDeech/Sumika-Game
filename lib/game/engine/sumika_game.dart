@@ -23,6 +23,7 @@ abstract final class SumikaGameConstants {
   static const double worldCenterDivisor = 2;
   static const int startingFruitVarietyCount = 5;
   static const int initialScore = 0;
+  static const int maximumScore = 99999;
   static const int scoreTierOffset = 1;
   static const int scorePerTier = 10;
   static const FruitKind firstFruit = FruitKind.fruit01;
@@ -89,7 +90,7 @@ class SumikaGame extends Forge2DGame with TapCallbacks, MouseMovementDetector {
   /// タップ位置をワールド座標へ変換し、その位置に果実を投下します。
   @override
   void onTapDown(TapDownEvent event) {
-    if (_gameOver || _dropShip == null || !_dropCooldown.tryStart()) return;
+    if (_gameOver || _dropShip == null || !_dropCooldown.isReady) return;
 
     final target = screenToWorld(event.localPosition);
     _moveDropShip(target.x);
@@ -166,14 +167,22 @@ class SumikaGame extends Forge2DGame with TapCallbacks, MouseMovementDetector {
         spawnX = (safeX - offset).clamp(minX, maxX).toDouble();
       }
     }
+    final spawnPosition = Vector2(spawnX, _dropShip!.fruitCenterPosition.y);
+    final overlapsExistingFruit = _fruits.any(
+      (fruit) =>
+          fruit.isMounted &&
+          !fruit.isRemoving &&
+          fruit.overlapsAt(spawnPosition, kind),
+    );
+    if (overlapsExistingFruit || !_dropCooldown.tryStart()) return;
+
     _lastDropX = safeX;
     _moveDropShip(spawnX);
-    final spawnY = _dropShip!.fruitCenterPosition.y;
 
     world.add(
       FruitComponent(
         kind: kind,
-        position: Vector2(spawnX, spawnY),
+        position: spawnPosition,
         onFruitContact: _queueMerge,
       ),
     );
@@ -229,9 +238,13 @@ class SumikaGame extends Forge2DGame with TapCallbacks, MouseMovementDetector {
           onFruitContact: _queueMerge,
         ),
       );
-      score.value +=
+      final mergeScore =
           (first.kind.index + SumikaGameConstants.scoreTierOffset) *
           SumikaGameConstants.scorePerTier;
+      score.value = min(
+        score.value + mergeScore,
+        SumikaGameConstants.maximumScore,
+      );
       onFruitMerged?.call(first.kind);
     }
     _pendingMerges.clear();

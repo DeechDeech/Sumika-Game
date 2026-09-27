@@ -7,11 +7,12 @@ abstract final class FruitDropCooldownConstants {
 class FruitDropCooldown {
   double _remainingSeconds = FruitDropCooldownConstants.initialRemainingSeconds;
 
+  bool get isReady =>
+      _remainingSeconds <= FruitDropCooldownConstants.readyThreshold;
+
   /// クールタイム中でなければ投下を許可し、待ち時間を開始します。
   bool tryStart() {
-    if (_remainingSeconds > FruitDropCooldownConstants.readyThreshold) {
-      return false;
-    }
+    if (!isReady) return false;
     _remainingSeconds = FruitDropCooldownConstants.durationSeconds;
     return true;
   }

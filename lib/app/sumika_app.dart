@@ -12,6 +12,7 @@ class SumikaApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: AppTheme.appTitle,
+      debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       home: const GameHomePage(),
     );

@@ -10,7 +10,7 @@ abstract final class ScorePanelConstants {
   static const double scoreFontSize = 23;
   static const double scoreLineHeight = 1;
   static const double hintFontSize = 11;
-  static const int scoreDigits = 4;
+  static const int scoreDigits = 5;
   static const String scorePaddingCharacter = '0';
   static const String scoreLabel = 'SCORE';
   static const String mergeHint = '同じフルーツを合わせよう';

@@ -10,6 +10,7 @@ abstract final class FruitComponentConstants {
   static const double friction = 0.42;
   static const double restitution = 0.12;
   static const double outlineWidth = 0.08;
+  static const double overlapTolerance = 0.0001;
 }
 
 class FruitComponent extends BodyComponent with ContactCallbacks {
@@ -38,6 +39,26 @@ class FruitComponent extends BodyComponent with ContactCallbacks {
   onFruitContact;
   bool isMerging = false;
   Image? _image;
+
+  bool overlapsAt(Vector2 candidatePosition, FruitKind candidateKind) {
+    return circlesOverlap(
+      firstPosition: position,
+      firstRadius: kind.radius,
+      secondPosition: candidatePosition,
+      secondRadius: candidateKind.radius,
+    );
+  }
+
+  static bool circlesOverlap({
+    required Vector2 firstPosition,
+    required double firstRadius,
+    required Vector2 secondPosition,
+    required double secondRadius,
+  }) {
+    final minimumSeparation =
+        firstRadius + secondRadius - FruitComponentConstants.overlapTolerance;
+    return (firstPosition - secondPosition).length < minimumSeparation;
+  }
 
   @override
   Future<void> onLoad() async {
