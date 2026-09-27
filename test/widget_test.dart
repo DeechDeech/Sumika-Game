@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sumika_game/app/sumika_app.dart';
 import 'package:sumika_game/game/audio/game_audio_controller.dart';
 import 'package:sumika_game/game/engine/fruit_drop_cooldown.dart';
+import 'package:sumika_game/game/engine/fruit_kind.dart';
 import 'package:sumika_game/game/engine/sumika_game.dart';
 import 'package:sumika_game/game/presentation/widgets/game_audio_settings_sheet.dart';
 
@@ -41,6 +42,21 @@ void main() {
 
     cooldown.advance(halfCooldown);
     expect(cooldown.tryStart(), isTrue);
+  });
+
+  test('fruit kinds increase by radius and have five drop choices', () {
+    final kinds = FruitKind.values;
+
+    expect(kinds, hasLength(11));
+    for (var index = 1; index < kinds.length; index++) {
+      expect(kinds[index].radius, greaterThan(kinds[index - 1].radius));
+    }
+    expect(SumikaGameConstants.startingFruitVarietyCount, 5);
+    expect(
+      kinds.take(SumikaGameConstants.startingFruitVarietyCount),
+      hasLength(5),
+    );
+    expect(kinds.last.next, isNull);
   });
 
   testWidgets(WidgetTestConstants.sliderTestName, (tester) async {

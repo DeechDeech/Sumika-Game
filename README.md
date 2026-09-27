@@ -30,7 +30,7 @@ Chrome で試す場合は `flutter run -d chrome` を使います。Android 実�
 
 フルーツ画像のファイル名と推奨仕様は `assets/images/fruits/README.md` を参照してください。画像の見た目と Forge2D の当たり判定は別々なので、画像を変更しても物理形状は `lib/game/engine/fruit_kind.dart` で調整できます。小さい果実ほど質量を大きく設定し、物理形状の面積から Forge2D の密度へ換算しています。
 
-ゲーム中は指定 BGM をループ再生し、果実が合体した時に効果音を再生します。画面下部の音量設定ボタンから BGM と効果音の音量を別々に調節できます。種類別の効果音は `GameAudioConstants.mergeSoundByFruit` で割り当てます。
+ゲーム中は指定 BGM をループ再生し、果実の投下時と合体時に効果音を再生します。画面下部の音量設定ボタンから BGM と効果音の音量を別々に調節できます。種類別の効果音は `GameAudioConstants.mergeSoundByFruit` で割り当てます。
 
 ## チェック
 

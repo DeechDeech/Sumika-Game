@@ -19,6 +19,7 @@ class GameHomePage extends StatefulWidget {
 class _GameHomePageState extends State<GameHomePage> {
   final GameAudioController _audio = GameAudioController.instance;
   late final SumikaGame _game = SumikaGame(
+    onFruitDropped: (kind) => unawaited(_audio.playDropSound(kind)),
     onFruitMerged: (kind) => unawaited(_audio.playMergeSound(kind)),
   );
 

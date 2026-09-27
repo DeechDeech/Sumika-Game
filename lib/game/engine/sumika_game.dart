@@ -19,16 +19,16 @@ abstract final class SumikaGameConstants {
   static const double verticalSpawnMargin = 1.2;
   static const double repeatedDropJitter = 0.04;
   static const double worldCenterDivisor = 2;
-  static const int startingFruitVarietyCount = 3;
+  static const int startingFruitVarietyCount = 5;
   static const int initialScore = 0;
   static const int scoreTierOffset = 1;
   static const int scorePerTier = 10;
-  static const FruitKind firstFruit = FruitKind.berry;
+  static const FruitKind firstFruit = FruitKind.fruit01;
 }
 
 class SumikaGame extends Forge2DGame with TapCallbacks {
   /// 下向きの重力とゲーム用カメラを設定した物理ゲームを作成します。
-  SumikaGame({this.onFruitMerged})
+  SumikaGame({this.onFruitDropped, this.onFruitMerged})
     : super(
         gravity: Vector2(
           SumikaGameConstants.gravityX,
@@ -36,6 +36,9 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
         ),
         zoom: SumikaGameConstants.cameraZoom,
       );
+
+  /// 果実の投下が成立したとき、投下した種類を通知します。
+  final void Function(FruitKind kind)? onFruitDropped;
 
   /// 果実の合体成立時に、合体した果実の種類を通知します。
   final void Function(FruitKind kind)? onFruitMerged;
@@ -132,6 +135,7 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
         onFruitContact: _queueMerge,
       ),
     );
+    onFruitDropped?.call(kind);
 
     final startingKinds = FruitKind.values
         .take(SumikaGameConstants.startingFruitVarietyCount)
@@ -141,10 +145,7 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
 
   /// 同じ種類の果実が接触した組を一度だけ合体予約へ追加します。
   void _queueMerge(FruitComponent first, FruitComponent second) {
-    if (first.kind != second.kind ||
-        first.kind.next == null ||
-        first.isMerging ||
-        second.isMerging) {
+    if (first.kind != second.kind || first.isMerging || second.isMerging) {
       return;
     }
 
@@ -158,7 +159,13 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
     for (final (first, second) in _pendingMerges) {
       if (first.isRemoving || second.isRemoving) continue;
 
-      final nextKind = first.kind.next!;
+      final nextKind = first.kind.next;
+      if (nextKind == null) {
+        first.removeFromParent();
+        second.removeFromParent();
+        onFruitMerged?.call(first.kind);
+        continue;
+      }
       final mergePosition = Vector2(
         (first.position.x + second.position.x) /
             SumikaGameConstants.worldCenterDivisor,

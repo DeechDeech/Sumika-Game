@@ -1,89 +1,133 @@
 import 'dart:ui';
 
 abstract final class FruitKindConstants {
-  static const String berryLabel = 'ベリー';
-  static const String plumLabel = 'プラム';
-  static const String citrusLabel = 'シトラス';
-  static const String pearLabel = 'ペアー';
-  static const String peachLabel = 'ピーチ';
-  static const String melonLabel = 'メロン';
-  static const String giantLabel = 'ビッグフルーツ';
+  static const String fruit01Label = 'ベリー';
+  static const String fruit02Label = 'プラム';
+  static const String fruit03Label = 'シトラス';
+  static const String fruit04Label = 'ペアー';
+  static const String fruit05Label = 'ピーチ';
+  static const String fruit06Label = 'メロン';
+  static const String fruit07Label = 'ビッグフルーツ';
+  static const String fruit08Label = 'フルーツ08';
+  static const String fruit09Label = 'フルーツ09';
+  static const String fruit10Label = 'フルーツ10';
+  static const String fruit11Label = 'フルーツ11';
 
-  static const double berryRadius = 0.72;
-  static const double plumRadius = 0.92;
-  static const double citrusRadius = 1.14;
-  static const double pearRadius = 1.42;
-  static const double peachRadius = 1.78;
-  static const double melonRadius = 2.18;
-  static const double giantRadius = 2.66;
+  static const double fruit01Radius = 1.44;
+  static const double fruit02Radius = 1.84;
+  static const double fruit03Radius = 2.28;
+  static const double fruit04Radius = 2.84;
+  static const double fruit05Radius = 3.56;
+  static const double fruit06Radius = 4.36;
+  static const double fruit07Radius = 5.32;
+  static const double fruit08Radius = 6.48;
+  static const double fruit09Radius = 7.88;
+  static const double fruit10Radius = 9.56;
+  static const double fruit11Radius = 11.60;
 
-  static const double berryMass = 4;
-  static const double plumMass = 3.5;
-  static const double citrusMass = 3;
-  static const double pearMass = 2.5;
-  static const double peachMass = 2;
-  static const double melonMass = 1.5;
-  static const double giantMass = 1;
+  static const double fruit01Mass = 4;
+  static const double fruit02Mass = 3.5;
+  static const double fruit03Mass = 3;
+  static const double fruit04Mass = 2.5;
+  static const double fruit05Mass = 2;
+  static const double fruit06Mass = 1.5;
+  static const double fruit07Mass = 1;
+  static const double fruit08Mass = 0.8;
+  static const double fruit09Mass = 0.6;
+  static const double fruit10Mass = 0.45;
+  static const double fruit11Mass = 0.3;
 
-  static const int berryColor = 0xFFE97867;
-  static const int plumColor = 0xFFB978A5;
-  static const int citrusColor = 0xFFF1C45F;
-  static const int pearColor = 0xFF91B86A;
-  static const int peachColor = 0xFFF1A078;
-  static const int melonColor = 0xFF70A984;
-  static const int giantColor = 0xFFDA6B5B;
+  static const int fruit01Color = 0xFFE97867;
+  static const int fruit02Color = 0xFFB978A5;
+  static const int fruit03Color = 0xFFF1C45F;
+  static const int fruit04Color = 0xFF91B86A;
+  static const int fruit05Color = 0xFFF1A078;
+  static const int fruit06Color = 0xFF70A984;
+  static const int fruit07Color = 0xFFDA6B5B;
+  static const int fruit08Color = 0xFF6E9FC7;
+  static const int fruit09Color = 0xFFDBA94B;
+  static const int fruit10Color = 0xFF8D79B8;
+  static const int fruit11Color = 0xFF5D9B91;
   static const int nextIndexOffset = 1;
 }
 
 enum FruitKind {
-  berry(
-    FruitKindConstants.berryLabel,
-    FruitKindConstants.berryRadius,
-    FruitKindConstants.berryColor,
-    FruitKindConstants.berryMass,
-    'fruits/berry.png',
+  fruit01(
+    FruitKindConstants.fruit01Label,
+    FruitKindConstants.fruit01Radius,
+    FruitKindConstants.fruit01Color,
+    FruitKindConstants.fruit01Mass,
+    'fruits/fruit01.png',
   ),
-  plum(
-    FruitKindConstants.plumLabel,
-    FruitKindConstants.plumRadius,
-    FruitKindConstants.plumColor,
-    FruitKindConstants.plumMass,
-    'fruits/plum.png',
+  fruit02(
+    FruitKindConstants.fruit02Label,
+    FruitKindConstants.fruit02Radius,
+    FruitKindConstants.fruit02Color,
+    FruitKindConstants.fruit02Mass,
+    'fruits/fruit02.png',
   ),
-  citrus(
-    FruitKindConstants.citrusLabel,
-    FruitKindConstants.citrusRadius,
-    FruitKindConstants.citrusColor,
-    FruitKindConstants.citrusMass,
-    'fruits/citrus.png',
+  fruit03(
+    FruitKindConstants.fruit03Label,
+    FruitKindConstants.fruit03Radius,
+    FruitKindConstants.fruit03Color,
+    FruitKindConstants.fruit03Mass,
+    'fruits/fruit03.png',
   ),
-  pear(
-    FruitKindConstants.pearLabel,
-    FruitKindConstants.pearRadius,
-    FruitKindConstants.pearColor,
-    FruitKindConstants.pearMass,
-    'fruits/pear.png',
+  fruit04(
+    FruitKindConstants.fruit04Label,
+    FruitKindConstants.fruit04Radius,
+    FruitKindConstants.fruit04Color,
+    FruitKindConstants.fruit04Mass,
+    'fruits/fruit04.png',
   ),
-  peach(
-    FruitKindConstants.peachLabel,
-    FruitKindConstants.peachRadius,
-    FruitKindConstants.peachColor,
-    FruitKindConstants.peachMass,
-    'fruits/peach.png',
+  fruit05(
+    FruitKindConstants.fruit05Label,
+    FruitKindConstants.fruit05Radius,
+    FruitKindConstants.fruit05Color,
+    FruitKindConstants.fruit05Mass,
+    'fruits/fruit05.png',
   ),
-  melon(
-    FruitKindConstants.melonLabel,
-    FruitKindConstants.melonRadius,
-    FruitKindConstants.melonColor,
-    FruitKindConstants.melonMass,
-    'fruits/melon.png',
+  fruit06(
+    FruitKindConstants.fruit06Label,
+    FruitKindConstants.fruit06Radius,
+    FruitKindConstants.fruit06Color,
+    FruitKindConstants.fruit06Mass,
+    'fruits/fruit06.png',
   ),
-  giant(
-    FruitKindConstants.giantLabel,
-    FruitKindConstants.giantRadius,
-    FruitKindConstants.giantColor,
-    FruitKindConstants.giantMass,
-    'fruits/giant.png',
+  fruit07(
+    FruitKindConstants.fruit07Label,
+    FruitKindConstants.fruit07Radius,
+    FruitKindConstants.fruit07Color,
+    FruitKindConstants.fruit07Mass,
+    'fruits/fruit07.png',
+  ),
+  fruit08(
+    FruitKindConstants.fruit08Label,
+    FruitKindConstants.fruit08Radius,
+    FruitKindConstants.fruit08Color,
+    FruitKindConstants.fruit08Mass,
+    'fruits/fruit08.png',
+  ),
+  fruit09(
+    FruitKindConstants.fruit09Label,
+    FruitKindConstants.fruit09Radius,
+    FruitKindConstants.fruit09Color,
+    FruitKindConstants.fruit09Mass,
+    'fruits/fruit09.png',
+  ),
+  fruit10(
+    FruitKindConstants.fruit10Label,
+    FruitKindConstants.fruit10Radius,
+    FruitKindConstants.fruit10Color,
+    FruitKindConstants.fruit10Mass,
+    'fruits/fruit10.png',
+  ),
+  fruit11(
+    FruitKindConstants.fruit11Label,
+    FruitKindConstants.fruit11Radius,
+    FruitKindConstants.fruit11Color,
+    FruitKindConstants.fruit11Mass,
+    'fruits/fruit11.png',
   );
 
   /// 表示、物理特性、画像アセットを果実の種類に結び付けます。

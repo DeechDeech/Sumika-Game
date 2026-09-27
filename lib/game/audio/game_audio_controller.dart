@@ -21,13 +21,17 @@ abstract final class GameAudioConstants {
 
   // 種類別の効果音を追加したら、ここで果実ごとの音源へ差し替えます。
   static const Map<FruitKind, String> mergeSoundByFruit = {
-    FruitKind.berry: mergeSoundAsset,
-    FruitKind.plum: mergeSoundAsset,
-    FruitKind.citrus: mergeSoundAsset,
-    FruitKind.pear: mergeSoundAsset,
-    FruitKind.peach: mergeSoundAsset,
-    FruitKind.melon: mergeSoundAsset,
-    FruitKind.giant: mergeSoundAsset,
+    FruitKind.fruit01: mergeSoundAsset,
+    FruitKind.fruit02: mergeSoundAsset,
+    FruitKind.fruit03: mergeSoundAsset,
+    FruitKind.fruit04: mergeSoundAsset,
+    FruitKind.fruit05: mergeSoundAsset,
+    FruitKind.fruit06: mergeSoundAsset,
+    FruitKind.fruit07: mergeSoundAsset,
+    FruitKind.fruit08: mergeSoundAsset,
+    FruitKind.fruit09: mergeSoundAsset,
+    FruitKind.fruit10: mergeSoundAsset,
+    FruitKind.fruit11: mergeSoundAsset,
   };
 }
 
@@ -299,6 +303,9 @@ class GameAudioController with WidgetsBindingObserver {
       debugPrint('Merge sound playback failed: $error');
     }
   }
+
+  /// 投下した果実の種類に対応する既存の効果音を再生します。
+  Future<void> playDropSound(FruitKind kind) => playMergeSound(kind);
 
   /// BGM 音量を 0.0〜1.0 の範囲へ制限します。
   double _normalizeVolume(double volume) => volume.clamp(
