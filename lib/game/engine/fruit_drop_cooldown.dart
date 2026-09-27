@@ -1,5 +1,5 @@
 abstract final class FruitDropCooldownConstants {
-  static const double durationSeconds = 1;
+  static const double durationSeconds = 0;
   static const double readyThreshold = 0;
   static const double initialRemainingSeconds = 0;
 }
