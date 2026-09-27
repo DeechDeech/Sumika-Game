@@ -160,6 +160,10 @@ void main() {
       tester.getCenter(find.byKey(GameHeaderConstants.nextFruitKey)),
       fruitCenter,
     );
+    final fruitDecoration = tester
+        .widget<Container>(find.byKey(GameHeaderConstants.nextFruitKey))
+        .foregroundDecoration! as BoxDecoration;
+    expect(fruitDecoration.border!.top.color, FruitKind.fruit05.color);
     final largestFruitSize = tester.getSize(
       find.byKey(GameHeaderConstants.nextFruitKey),
     );
@@ -227,5 +231,44 @@ void main() {
       find.byTooltip(WidgetTestConstants.audioSettingsTooltip),
       findsOneWidget,
     );
+  });
+
+  testWidgets('fruit drops at the drag release position', (tester) async {
+    final droppedKinds = <FruitKind>[];
+    final game = SumikaGame(onFruitDropped: droppedKinds.add);
+    const gameSize = Size(400, 600);
+    tester.view.physicalSize = gameSize;
+    tester.view.devicePixelRatio = WidgetTestConstants.audioSettingsPixelRatio;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: GameWidget<SumikaGame>(game: game),
+        ),
+      ),
+    );
+    await tester.runAsync(() async {
+      await game.toBeLoaded();
+    });
+    await tester.pump(const Duration(milliseconds: 16));
+
+    final gameBounds = tester.getRect(find.byType(GameWidget<SumikaGame>));
+    final gesture = await tester.startGesture(
+      Offset(gameBounds.left + gameSize.width * 0.3, gameBounds.top + 40),
+    );
+    await gesture.moveTo(
+      Offset(gameBounds.left + gameSize.width * 0.7, gameBounds.top + 40),
+    );
+    await tester.pump(const Duration(milliseconds: 16));
+
+    expect(droppedKinds, isEmpty);
+
+    await gesture.up();
+    await tester.pump(const Duration(milliseconds: 16));
+
+    expect(droppedKinds, hasLength(1));
+    game.dispose();
   });
 }

@@ -10,7 +10,6 @@ abstract final class DropShipConstants {
   static const double dropLineGap = 0.16;
   static const double fruitComponentPadding = 0.2;
   static const double fruitOutlineWidth = 0.09;
-  static const int fruitOutlineColorValue = 0xFFFFFFFF;
 }
 
 class DropShipComponent extends PositionComponent
@@ -93,7 +92,7 @@ class DropShipComponent extends PositionComponent
       fruitCenter,
       radius,
       Paint()
-        ..color = const Color(DropShipConstants.fruitOutlineColorValue)
+        ..color = _fruitKind.color
         ..style = PaintingStyle.stroke
         ..strokeWidth = DropShipConstants.fruitOutlineWidth,
     );

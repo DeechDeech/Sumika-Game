@@ -29,7 +29,8 @@ abstract final class SumikaGameConstants {
   static const FruitKind firstFruit = FruitKind.fruit01;
 }
 
-class SumikaGame extends Forge2DGame with TapCallbacks, MouseMovementDetector {
+class SumikaGame extends Forge2DGame
+  with MultiTouchDragDetector, MouseMovementDetector {
   /// 下向きの重力とゲーム用カメラを設定した物理ゲームを作成します。
   SumikaGame({this.onFruitDropped, this.onFruitMerged, this.onGameOver})
     : super(
@@ -61,6 +62,8 @@ class SumikaGame extends Forge2DGame with TapCallbacks, MouseMovementDetector {
   final FruitDropCooldown _dropCooldown = FruitDropCooldown();
   DropShipComponent? _dropShip;
   double? _lastDropX;
+  int? _activeDropPointer;
+  double _dragTargetX = 0;
   bool _gameOver = false;
 
   /// ゲーム領域の背景色を返します。
@@ -87,20 +90,42 @@ class SumikaGame extends Forge2DGame with TapCallbacks, MouseMovementDetector {
     _moveDropShip(0);
   }
 
-  /// タップ位置をワールド座標へ変換し、その位置に果実を投下します。
+  /// 押した位置へプレビューを移動し、離すまで投下位置を追跡します。
   @override
-  void onTapDown(TapDownEvent event) {
+  void onDragStart(int pointerId, DragStartInfo info) {
     if (_gameOver || _dropShip == null || !_dropCooldown.isReady) return;
 
-    final target = screenToWorld(event.localPosition);
-    _moveDropShip(target.x);
-    _dropFruit(target.x);
+    _activeDropPointer = pointerId;
+    _dragTargetX = screenToWorld(info.eventPosition.widget).x;
+    _moveDropShip(_dragTargetX);
+  }
+
+  @override
+  void onDragUpdate(int pointerId, DragUpdateInfo info) {
+    if (_activeDropPointer != pointerId || _gameOver) return;
+
+    _dragTargetX = screenToWorld(info.eventPosition.widget).x;
+    _moveDropShip(_dragTargetX);
+  }
+
+  @override
+  void onDragEnd(int pointerId, DragEndInfo info) {
+    if (_activeDropPointer != pointerId) return;
+
+    _activeDropPointer = null;
+    if (!_gameOver) _dropFruit(_dragTargetX);
+  }
+
+  @override
+  void onDragCancel(int pointerId) {
+    if (_activeDropPointer == pointerId) _activeDropPointer = null;
   }
 
   @override
   void onMouseMove(PointerHoverInfo info) {
-    if (_gameOver || _dropShip == null) return;
-    _moveDropShip(screenToWorld(info.eventPosition.widget).x);
+    if (_gameOver || _dropShip == null || _activeDropPointer != null) return;
+    _dragTargetX = screenToWorld(info.eventPosition.widget).x;
+    _moveDropShip(_dragTargetX);
   }
 
   /// Forge2D を更新した後、接触コールバックで記録した合体を処理します。
@@ -117,6 +142,7 @@ class SumikaGame extends Forge2DGame with TapCallbacks, MouseMovementDetector {
     _pendingMerges.clear();
     _dropCooldown.reset();
     _lastDropX = null;
+    _activeDropPointer = null;
     _gameOver = false;
     for (final fruit in _fruits) {
       fruit.removeFromParent();
@@ -216,6 +242,13 @@ class SumikaGame extends Forge2DGame with TapCallbacks, MouseMovementDetector {
     for (final (first, second) in _pendingMerges) {
       if (first.isRemoving || second.isRemoving) continue;
 
+      final mergeScore =
+          (first.kind.index + SumikaGameConstants.scoreTierOffset) *
+          SumikaGameConstants.scorePerTier;
+      score.value = min(
+        score.value + mergeScore,
+        SumikaGameConstants.maximumScore,
+      );
       final nextKind = first.kind.next;
       if (nextKind == null) {
         first.removeFromParent();
@@ -237,13 +270,6 @@ class SumikaGame extends Forge2DGame with TapCallbacks, MouseMovementDetector {
           position: mergePosition,
           onFruitContact: _queueMerge,
         ),
-      );
-      final mergeScore =
-          (first.kind.index + SumikaGameConstants.scoreTierOffset) *
-          SumikaGameConstants.scorePerTier;
-      score.value = min(
-        score.value + mergeScore,
-        SumikaGameConstants.maximumScore,
       );
       onFruitMerged?.call(first.kind);
     }

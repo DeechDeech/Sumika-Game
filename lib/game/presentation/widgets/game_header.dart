@@ -122,6 +122,9 @@ class GameHeader extends StatelessWidget {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: fruit.color,
+                            ),
+                            foregroundDecoration: BoxDecoration(
+                              shape: BoxShape.circle,
                               border: Border.all(
                                 color: fruit.color,
                                 width: GameHeaderConstants.fruitOutlineWidth,
