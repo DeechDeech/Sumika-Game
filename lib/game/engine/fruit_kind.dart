@@ -17,6 +17,14 @@ abstract final class FruitKindConstants {
   static const double melonRadius = 2.18;
   static const double giantRadius = 2.66;
 
+  static const double berryMass = 4;
+  static const double plumMass = 3.5;
+  static const double citrusMass = 3;
+  static const double pearMass = 2.5;
+  static const double peachMass = 2;
+  static const double melonMass = 1.5;
+  static const double giantMass = 1;
+
   static const int berryColor = 0xFFE97867;
   static const int plumColor = 0xFFB978A5;
   static const int citrusColor = 0xFFF1C45F;
@@ -32,44 +40,66 @@ enum FruitKind {
     FruitKindConstants.berryLabel,
     FruitKindConstants.berryRadius,
     FruitKindConstants.berryColor,
+    FruitKindConstants.berryMass,
+    'fruits/berry.png',
   ),
   plum(
     FruitKindConstants.plumLabel,
     FruitKindConstants.plumRadius,
     FruitKindConstants.plumColor,
+    FruitKindConstants.plumMass,
+    'fruits/plum.png',
   ),
   citrus(
     FruitKindConstants.citrusLabel,
     FruitKindConstants.citrusRadius,
     FruitKindConstants.citrusColor,
+    FruitKindConstants.citrusMass,
+    'fruits/citrus.png',
   ),
   pear(
     FruitKindConstants.pearLabel,
     FruitKindConstants.pearRadius,
     FruitKindConstants.pearColor,
+    FruitKindConstants.pearMass,
+    'fruits/pear.png',
   ),
   peach(
     FruitKindConstants.peachLabel,
     FruitKindConstants.peachRadius,
     FruitKindConstants.peachColor,
+    FruitKindConstants.peachMass,
+    'fruits/peach.png',
   ),
   melon(
     FruitKindConstants.melonLabel,
     FruitKindConstants.melonRadius,
     FruitKindConstants.melonColor,
+    FruitKindConstants.melonMass,
+    'fruits/melon.png',
   ),
   giant(
     FruitKindConstants.giantLabel,
     FruitKindConstants.giantRadius,
     FruitKindConstants.giantColor,
+    FruitKindConstants.giantMass,
+    'fruits/giant.png',
   );
 
-  /// 表示名、Forge2D の半径、描画色を果実の種類に結び付けます。
-  const FruitKind(this.label, this.radius, this.colorValue);
+  /// 表示、物理特性、画像アセットを果実の種類に結び付けます。
+  const FruitKind(
+    this.label,
+    this.radius,
+    this.colorValue,
+    this.mass,
+    this.imageAsset,
+  );
 
   final String label;
   final double radius;
   final int colorValue;
+  final double mass;
+  final String imageAsset;
 
   /// 32 bit 整数で定義した色を Flutter の Color に変換します。
   Color get color => Color(colorValue);

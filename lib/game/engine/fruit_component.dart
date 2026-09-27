@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flame_forge2d/flame_forge2d.dart';
@@ -5,7 +6,6 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'fruit_kind.dart';
 
 abstract final class FruitComponentConstants {
-  static const double density = 1;
   static const double friction = 0.42;
   static const double restitution = 0.12;
 }
@@ -21,7 +21,7 @@ class FruitComponent extends BodyComponent with ContactCallbacks {
          fixtureDefs: [
            FixtureDef(
              CircleShape(radius: kind.radius),
-             density: FruitComponentConstants.density,
+             density: kind.mass / (math.pi * kind.radius * kind.radius),
              friction: FruitComponentConstants.friction,
              restitution: FruitComponentConstants.restitution,
            ),
@@ -33,6 +33,34 @@ class FruitComponent extends BodyComponent with ContactCallbacks {
   final void Function(FruitComponent first, FruitComponent second)
   onFruitContact;
   bool isMerging = false;
+  Image? _image;
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    try {
+      _image = await game.images.load(kind.imageAsset);
+    } on Object {
+      _image = null;
+    }
+  }
+
+  @override
+  void render(Canvas canvas) {
+    final image = _image;
+    if (image == null) {
+      super.render(canvas);
+      return;
+    }
+
+    final diameter = kind.radius * 2;
+    canvas.drawImageRect(
+      image,
+      Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+      Rect.fromCenter(center: Offset.zero, width: diameter, height: diameter),
+      Paint()..filterQuality = FilterQuality.medium,
+    );
+  }
 
   /// 接触イベントから果実コンポーネントを識別できるよう body に登録します。
   @override

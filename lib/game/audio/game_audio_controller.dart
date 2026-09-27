@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flame_audio/flame_audio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 import '../engine/fruit_kind.dart';
 
@@ -31,9 +31,11 @@ abstract final class GameAudioConstants {
   };
 }
 
-class GameAudioController {
+class GameAudioController with WidgetsBindingObserver {
   /// コントローラーをアプリ内で一つだけ使うための非公開コンストラクターです。
-  GameAudioController._();
+  GameAudioController._() {
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   /// アプリ全体で共有する音量状態と音声プレイヤー管理を返します。
   static final GameAudioController instance = GameAudioController._();
@@ -52,13 +54,61 @@ class GameAudioController {
   bool _seAvailable = GameAudioConstants.audioInitiallyAvailable;
   bool _bgmObserverInitialized =
       GameAudioConstants.bgmObserverInitiallyInitialized;
+  bool _shouldPlayAudio = false;
+  bool _isForeground = true;
   int _playbackGeneration = GameAudioConstants.initialPlaybackGeneration;
   final Stopwatch _bgmVolumeClock = Stopwatch()..start();
   Duration _lastBgmVolumeUpdate = Duration.zero;
   Timer? _bgmVolumeUpdateTimer;
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_restoreAudioAfterResume());
+      return;
+    }
+
+    _isForeground = false;
+    _playbackGeneration++;
+    FlameAudio.bgm.isPlaying = false;
+    _bgmVolumeUpdateTimer?.cancel();
+    _bgmVolumeUpdateTimer = null;
+    unawaited(_clearMergeSoundPools());
+  }
+
+  Future<void> _restoreAudioAfterResume() async {
+    await _clearMergeSoundPools();
+    _isForeground = true;
+    if (!_shouldPlayAudio) return;
+
+    _bgmAvailable = GameAudioConstants.audioInitiallyAvailable;
+    _seAvailable = GameAudioConstants.audioInitiallyAvailable;
+    await start();
+  }
+
+  Future<void> _clearMergeSoundPools() async {
+    final loading = _soundPoolLoading;
+    if (loading != null) {
+      try {
+        await loading;
+      } on Object catch (error) {
+        debugPrint('Merge sound pool initialization failed: $error');
+      }
+    }
+
+    final pools = _mergeSoundPools.values.toSet().toList();
+    _mergeSoundPools.clear();
+    _soundPoolLoading = null;
+    try {
+      await Future.wait(pools.map((pool) => pool.dispose()));
+    } on Object catch (error) {
+      debugPrint('Merge sound pool cleanup failed: $error');
+    }
+  }
+
   /// 音源を先読みし、ゲーム用 BGM をループ再生します。
   Future<void> start() async {
+    _shouldPlayAudio = true;
     final generation = ++_playbackGeneration;
     try {
       await (_assetLoading ??= FlameAudio.audioCache.loadAll([
@@ -151,6 +201,7 @@ class GameAudioController {
 
   /// ゲーム画面を離れるときに BGM を停止します。
   Future<void> stop() async {
+    _shouldPlayAudio = false;
     _playbackGeneration++;
     if (!_bgmAvailable || !FlameAudio.bgm.isPlaying) return;
 
@@ -223,7 +274,9 @@ class GameAudioController {
 
   /// 合体した果実の種類に対応する効果音を現在の SE 音量で再生します。
   Future<void> playMergeSound(FruitKind kind) async {
-    if (!_seAvailable || seVolume.value <= GameAudioConstants.minimumVolume) {
+    if (!_isForeground ||
+        !_seAvailable ||
+        seVolume.value <= GameAudioConstants.minimumVolume) {
       return;
     }
 

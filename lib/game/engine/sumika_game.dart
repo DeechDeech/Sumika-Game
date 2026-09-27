@@ -17,6 +17,7 @@ abstract final class SumikaGameConstants {
   static const Color backgroundColor = Color(0xFFDCE5D5);
   static const double horizontalDropMargin = 0.5;
   static const double verticalSpawnMargin = 1.2;
+  static const double repeatedDropJitter = 0.04;
   static const double worldCenterDivisor = 2;
   static const int startingFruitVarietyCount = 3;
   static const int initialScore = 0;
@@ -48,6 +49,7 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
   final Random _random = Random();
   final List<(FruitComponent, FruitComponent)> _pendingMerges = [];
   final FruitDropCooldown _dropCooldown = FruitDropCooldown();
+  double? _lastDropX;
 
   /// ゲーム領域の背景色を返します。
   @override
@@ -82,6 +84,7 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
   void reset() {
     _pendingMerges.clear();
     _dropCooldown.reset();
+    _lastDropX = null;
     for (final fruit in _fruits) {
       fruit.removeFromParent();
     }
@@ -102,10 +105,21 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
     final kind = nextFruit.value;
     final worldSize = _worldSize;
     final margin = kind.radius + SumikaGameConstants.horizontalDropMargin;
-    final safeX = targetX.clamp(
-      -worldSize.x / SumikaGameConstants.worldCenterDivisor + margin,
-      worldSize.x / SumikaGameConstants.worldCenterDivisor - margin,
-    );
+    final minX = -worldSize.x / SumikaGameConstants.worldCenterDivisor + margin;
+    final maxX = worldSize.x / SumikaGameConstants.worldCenterDivisor - margin;
+    final safeX = targetX.clamp(minX, maxX).toDouble();
+    var spawnX = safeX;
+    if (_lastDropX == safeX) {
+      var offset =
+          (_random.nextDouble() * 2 - 1) *
+          SumikaGameConstants.repeatedDropJitter;
+      if (offset == 0) offset = SumikaGameConstants.repeatedDropJitter;
+      spawnX = (safeX + offset).clamp(minX, maxX).toDouble();
+      if (spawnX == safeX) {
+        spawnX = (safeX - offset).clamp(minX, maxX).toDouble();
+      }
+    }
+    _lastDropX = safeX;
     final spawnY =
         -worldSize.y / SumikaGameConstants.worldCenterDivisor +
         kind.radius +
@@ -114,7 +128,7 @@ class SumikaGame extends Forge2DGame with TapCallbacks {
     world.add(
       FruitComponent(
         kind: kind,
-        position: Vector2(safeX, spawnY),
+        position: Vector2(spawnX, spawnY),
         onFruitContact: _queueMerge,
       ),
     );
