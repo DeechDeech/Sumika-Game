@@ -1,5 +1,6 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sumika_game/app/sumika_app.dart';
@@ -46,10 +47,29 @@ void main() {
 
   test('fruit kinds increase by radius and have five drop choices', () {
     final kinds = FruitKind.values;
+    const expectedRadiusPixels = [
+      23.0,
+      30.5,
+      41.5,
+      51.5,
+      60.5,
+      71.0,
+      78.5,
+      81.0,
+      88.5,
+      110.0,
+      129.5,
+    ];
 
     expect(kinds, hasLength(11));
     for (var index = 1; index < kinds.length; index++) {
       expect(kinds[index].radius, greaterThan(kinds[index - 1].radius));
+    }
+    for (var index = 0; index < kinds.length; index++) {
+      expect(
+        kinds[index].radius * FruitKindConstants.logicalPixelsPerWorldUnit,
+        closeTo(expectedRadiusPixels[index], 0.001),
+      );
     }
     expect(SumikaGameConstants.startingFruitVarietyCount, 5);
     expect(
@@ -57,6 +77,26 @@ void main() {
       hasLength(5),
     );
     expect(kinds.last.next, isNull);
+  });
+
+  test('next fruit is separate from the currently selected fruit', () {
+    final game = SumikaGame();
+    final startingKinds = FruitKind.values.take(
+      SumikaGameConstants.startingFruitVarietyCount,
+    );
+
+    expect(game.currentFruit.value, SumikaGameConstants.firstFruit);
+    expect(startingKinds, contains(game.nextFruit.value));
+    game.dispose();
+  });
+
+  test('ship background is included in the asset manifest', () async {
+    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+
+    expect(
+      manifest.listAssets(),
+      contains('assets/images/backgrounds/ship.png'),
+    );
   });
 
   testWidgets(WidgetTestConstants.sliderTestName, (tester) async {

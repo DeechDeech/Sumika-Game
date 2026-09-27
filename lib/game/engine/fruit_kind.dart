@@ -1,6 +1,8 @@
 import 'dart:ui';
 
 abstract final class FruitKindConstants {
+  static const double logicalPixelsPerWorldUnit = 12;
+
   static const String fruit01Label = 'ベリー';
   static const String fruit02Label = 'プラム';
   static const String fruit03Label = 'シトラス';
@@ -13,17 +15,17 @@ abstract final class FruitKindConstants {
   static const String fruit10Label = 'フルーツ10';
   static const String fruit11Label = 'フルーツ11';
 
-  static const double fruit01Radius = 1.44;
-  static const double fruit02Radius = 1.84;
-  static const double fruit03Radius = 2.28;
-  static const double fruit04Radius = 2.84;
-  static const double fruit05Radius = 3.56;
-  static const double fruit06Radius = 4.36;
-  static const double fruit07Radius = 5.32;
-  static const double fruit08Radius = 6.48;
-  static const double fruit09Radius = 7.88;
-  static const double fruit10Radius = 9.56;
-  static const double fruit11Radius = 11.60;
+  static const double fruit01Radius = 23 / logicalPixelsPerWorldUnit;
+  static const double fruit02Radius = 30.5 / logicalPixelsPerWorldUnit;
+  static const double fruit03Radius = 41.5 / logicalPixelsPerWorldUnit;
+  static const double fruit04Radius = 51.5 / logicalPixelsPerWorldUnit;
+  static const double fruit05Radius = 60.5 / logicalPixelsPerWorldUnit;
+  static const double fruit06Radius = 71 / logicalPixelsPerWorldUnit;
+  static const double fruit07Radius = 78.5 / logicalPixelsPerWorldUnit;
+  static const double fruit08Radius = 81 / logicalPixelsPerWorldUnit;
+  static const double fruit09Radius = 88.5 / logicalPixelsPerWorldUnit;
+  static const double fruit10Radius = 110 / logicalPixelsPerWorldUnit;
+  static const double fruit11Radius = 129.5 / logicalPixelsPerWorldUnit;
 
   static const double fruit01Mass = 4;
   static const double fruit02Mass = 3.5;

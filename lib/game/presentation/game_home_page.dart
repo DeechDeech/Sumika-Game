@@ -21,6 +21,7 @@ class _GameHomePageState extends State<GameHomePage> {
   late final SumikaGame _game = SumikaGame(
     onFruitDropped: (kind) => unawaited(_audio.playDropSound(kind)),
     onFruitMerged: (kind) => unawaited(_audio.playMergeSound(kind)),
+    onGameOver: (finalScore) => unawaited(_showGameOverDialog(finalScore)),
   );
 
   /// 音声を初期化して、ゲーム中の BGM 再生を開始します。
@@ -52,6 +53,27 @@ class _GameHomePageState extends State<GameHomePage> {
     showModalBottomSheet<void>(
       context: context,
       builder: (context) => GameAudioSettingsSheet(controller: _audio),
+    );
+  }
+
+  Future<void> _showGameOverDialog(int finalScore) async {
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('ゲームオーバー'),
+        content: Text('スコア: $finalScore'),
+        actions: [
+          FilledButton(
+            onPressed: () {
+              _game.reset();
+              Navigator.of(dialogContext).pop();
+            },
+            child: const Text('もう一度遊ぶ'),
+          ),
+        ],
+      ),
     );
   }
 }
