@@ -2,15 +2,19 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:flutter/services.dart';
 
 import 'fruit_kind.dart';
 
 abstract final class FruitComponentConstants {
   static const double friction = 0.42;
   static const double restitution = 0.12;
+  static const double outlineWidth = 0.08;
 }
 
 class FruitComponent extends BodyComponent with ContactCallbacks {
+  static Future<Set<String>>? _assetManifestPaths;
+
   /// 種類に対応する大きさ・色・物理形状を持つ果実を作成します。
   FruitComponent({
     required this.kind,
@@ -39,10 +43,17 @@ class FruitComponent extends BodyComponent with ContactCallbacks {
   Future<void> onLoad() async {
     await super.onLoad();
     try {
+      final assetPaths = await (_assetManifestPaths ??= _loadAssetManifest());
+      if (!assetPaths.contains('assets/images/${kind.imageAsset}')) return;
       _image = await game.images.load(kind.imageAsset);
     } on Object {
       _image = null;
     }
+  }
+
+  static Future<Set<String>> _loadAssetManifest() async {
+    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+    return manifest.listAssets().toSet();
   }
 
   @override
@@ -50,15 +61,34 @@ class FruitComponent extends BodyComponent with ContactCallbacks {
     final image = _image;
     if (image == null) {
       super.render(canvas);
+      _drawOutline(canvas);
       return;
     }
 
     final diameter = kind.radius * 2;
+    final imageWidth = diameter * image.width / image.height;
+    final clip = Path()
+      ..addOval(Rect.fromCircle(center: Offset.zero, radius: kind.radius));
+    canvas.save();
+    canvas.clipPath(clip);
     canvas.drawImageRect(
       image,
       Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
-      Rect.fromCenter(center: Offset.zero, width: diameter, height: diameter),
+      Rect.fromCenter(center: Offset.zero, width: imageWidth, height: diameter),
       Paint()..filterQuality = FilterQuality.medium,
+    );
+    canvas.restore();
+    _drawOutline(canvas);
+  }
+
+  void _drawOutline(Canvas canvas) {
+    canvas.drawCircle(
+      Offset.zero,
+      kind.radius,
+      Paint()
+        ..color = kind.color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = FruitComponentConstants.outlineWidth,
     );
   }
 

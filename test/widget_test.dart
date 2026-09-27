@@ -13,7 +13,7 @@ abstract final class WidgetTestConstants {
   static const double audioSettingsPixelRatio = 1;
   static const double sliderDragDistance = 80;
   static const double halfDurationFactor = 0.5;
-  static const String gameTitle = 'ころころ果樹園';
+  static const String gameTitle = 'スミカゲーム';
   static const String resetLabel = 'やり直す';
   static const String audioSettingsTooltip = '音量設定';
   static const String bgmLabel = 'BGM';

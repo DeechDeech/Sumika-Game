@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppTheme {
-  static const String appTitle = 'ころころ果樹園';
+  static const String appTitle = 'スミカゲーム';
   static const Color surface = Color(0xFFF2F3E9);
   static const Color ink = Color(0xFF263A35);
   static const Color muted = Color(0xFF728078);
@@ -11,6 +11,7 @@ abstract final class AppTheme {
   static const Color controlSurface = Color(0xFFE3E8DB);
   static const Color cardSurface = Colors.white;
   static const Color fruitOutline = Color(0xFF536A5D);
+  static const Color test = Colors.blue;
 
   static final ThemeData light = ThemeData(
     useMaterial3: true,

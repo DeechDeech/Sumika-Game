@@ -27,7 +27,7 @@ class ScorePanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
+      children: <Widget>[
         const Text(
           ScorePanelConstants.scoreLabel,
           style: TextStyle(
@@ -55,13 +55,6 @@ class ScorePanel extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        const Text(
-          ScorePanelConstants.mergeHint,
-          style: TextStyle(
-            color: AppTheme.muted,
-            fontSize: ScorePanelConstants.hintFontSize,
-          ),
-        ),
       ],
     );
   }

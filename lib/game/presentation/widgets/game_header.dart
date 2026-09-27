@@ -12,16 +12,16 @@ abstract final class GameHeaderConstants {
   static const double titleLineHeight = 1.1;
   static const double eyebrowGap = 3;
   static const double eyebrowFontSize = 10;
-  static const double nextCardHorizontalPadding = 11;
-  static const double nextCardVerticalPadding = 7;
+  static const double nextCardHorizontalPadding = 12;
+  static const double nextCardVerticalPadding = 8;
   static const double nextCardRightPadding = 12;
-  static const double nextFruitGap = 7;
-  static const double nextLabelFontSize = 9;
-  static const double nextFruitSize = 19;
+  static const double nextFruitGap = 8;
+  static const double nextLabelFontSize = 10;
+  static const double nextFruitSize = 36;
   static const double nextFruitCardRadius = 14;
+  static const double fruitOutlineWidth = 1.5;
   static const double borderAlpha = 0.08;
-  static const double fruitBorderAlpha = 0.12;
-  static const String title = 'ころころ果樹園';
+  static const String title = 'スミカゲーム';
   static const String eyebrow = 'FRUIT DROP STUDY  /  01';
   static const String nextLabel = 'NEXT';
 }
@@ -59,15 +59,6 @@ class GameHeader extends StatelessWidget {
                   fontSize: GameHeaderConstants.titleFontSize,
                   fontWeight: FontWeight.w800,
                   height: GameHeaderConstants.titleLineHeight,
-                ),
-              ),
-              SizedBox(height: GameHeaderConstants.eyebrowGap),
-              Text(
-                GameHeaderConstants.eyebrow,
-                style: TextStyle(
-                  color: AppTheme.muted,
-                  fontSize: GameHeaderConstants.eyebrowFontSize,
-                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
@@ -111,9 +102,18 @@ class GameHeader extends StatelessWidget {
                     shape: BoxShape.circle,
                     color: fruit.color,
                     border: Border.all(
-                      color: AppTheme.ink.withValues(
-                        alpha: GameHeaderConstants.fruitBorderAlpha,
-                      ),
+                      color: fruit.color,
+                      width: GameHeaderConstants.fruitOutlineWidth,
+                    ),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Image.asset(
+                    'assets/images/${fruit.imageAsset}',
+                    width: GameHeaderConstants.nextFruitSize,
+                    height: GameHeaderConstants.nextFruitSize,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => ColoredBox(
+                      color: fruit.color,
                     ),
                   ),
                 ),
