@@ -115,10 +115,9 @@ class GameAudioController with WidgetsBindingObserver {
     _shouldPlayAudio = true;
     final generation = ++_playbackGeneration;
     try {
-      await (_assetLoading ??= FlameAudio.audioCache.loadAll([
+      await (_assetLoading ??= FlameAudio.audioCache.load(
         GameAudioConstants.backgroundMusicAsset,
-        GameAudioConstants.mergeSoundAsset,
-      ]));
+      ));
     } on TimeoutException catch (error) {
       _bgmAvailable = false;
       _seAvailable = false;

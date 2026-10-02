@@ -18,7 +18,6 @@ abstract final class GameHeaderConstants {
   static const double nextLabelFontSize = 10;
   static const double nextFruitDisplayScale = 0.62;
   static const double nextFruitCardRadius = 12;
-  static const double fruitOutlineWidth = 1.5;
   static const double borderAlpha = 0.08;
   static const String title = 'スミカゲーム';
   static const String brandLogoAsset = 'assets/images/branding/sumika_logo.png';
@@ -76,6 +75,11 @@ class GameHeader extends StatelessWidget {
         ValueListenableBuilder<FruitKind>(
           valueListenable: nextFruit,
           builder: (context, fruit, _) {
+            final fruitOutlineWidth =
+                fruit.outlineWidth *
+                FruitKindConstants.logicalPixelsPerWorldUnit *
+                GameHeaderConstants.nextFruitDisplayScale *
+                2;
             final fruitSize =
                 fruit.radius *
                 FruitKindConstants.logicalPixelsPerWorldUnit *
@@ -127,7 +131,7 @@ class GameHeader extends StatelessWidget {
                               shape: BoxShape.circle,
                               border: Border.all(
                                 color: fruit.color,
-                                width: GameHeaderConstants.fruitOutlineWidth,
+                                width: fruitOutlineWidth,
                               ),
                             ),
                             clipBehavior: Clip.antiAlias,

@@ -2,20 +2,16 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:flutter/services.dart';
 
 import 'fruit_kind.dart';
 
 abstract final class FruitComponentConstants {
   static const double friction = 0.42;
   static const double restitution = 0.12;
-  static const double outlineWidth = 0.08;
   static const double overlapTolerance = 0.0001;
 }
 
 class FruitComponent extends BodyComponent with ContactCallbacks {
-  static Future<Set<String>>? _assetManifestPaths;
-
   /// 種類に対応する大きさ・色・物理形状を持つ果実を作成します。
   FruitComponent({
     required this.kind,
@@ -64,17 +60,10 @@ class FruitComponent extends BodyComponent with ContactCallbacks {
   Future<void> onLoad() async {
     await super.onLoad();
     try {
-      final assetPaths = await (_assetManifestPaths ??= _loadAssetManifest());
-      if (!assetPaths.contains('assets/images/${kind.imageAsset}')) return;
       _image = await game.images.load(kind.imageAsset);
     } on Object {
       _image = null;
     }
-  }
-
-  static Future<Set<String>> _loadAssetManifest() async {
-    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
-    return manifest.listAssets().toSet();
   }
 
   @override
@@ -109,7 +98,7 @@ class FruitComponent extends BodyComponent with ContactCallbacks {
       Paint()
         ..color = kind.color
         ..style = PaintingStyle.stroke
-        ..strokeWidth = FruitComponentConstants.outlineWidth,
+        ..strokeWidth = kind.outlineWidth,
     );
   }
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flame_forge2d/flame_forge2d.dart';
@@ -11,7 +12,8 @@ abstract final class ArenaComponentConstants {
   static const double dangerDotRadius = 0.075;
   static const double dangerDotSpacing = 0.55;
   static const double dangerLineOffset = 0.22;
-  static const String dangerAreaBackgroundAsset = 'backgrounds/ship.png';
+  static const String upperBackgroundAsset = 'backgrounds/ship.png';
+  static const String lowerBackgroundAsset = 'backgrounds/deck.png';
   static const int fillColorValue = 0xFF536A5D;
   static const int dangerLineColorValue = 0xFFE7C96E;
 }
@@ -35,17 +37,29 @@ class ArenaComponent extends BodyComponent {
   final double width;
   final double height;
   final double topInset;
-  Image? _dangerAreaBackground;
+  Image? _upperBackground;
+  Image? _lowerBackground;
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+    unawaited(_loadBackgrounds());
+  }
+
+  Future<void> _loadBackgrounds() async {
     try {
-      _dangerAreaBackground = await game.images.load(
-        ArenaComponentConstants.dangerAreaBackgroundAsset,
+      _upperBackground = await game.images.load(
+        ArenaComponentConstants.upperBackgroundAsset,
       );
     } on Object {
-      _dangerAreaBackground = null;
+      _upperBackground = null;
+    }
+    try {
+      _lowerBackground = await game.images.load(
+        ArenaComponentConstants.lowerBackgroundAsset,
+      );
+    } on Object {
+      _lowerBackground = null;
     }
   }
 
@@ -94,17 +108,26 @@ class ArenaComponent extends BodyComponent {
 
   @override
   void render(Canvas canvas) {
-    _drawDangerAreaBackground(canvas);
+    final halfWidth = width / ArenaComponentConstants.halfDimensionDivisor;
+    final top = -height / ArenaComponentConstants.halfDimensionDivisor;
+    final bottom = height / ArenaComponentConstants.halfDimensionDivisor;
+    final lineY = top + topInset + ArenaComponentConstants.dangerLineOffset;
+    final upperBounds = Rect.fromLTRB(-halfWidth, top, halfWidth, lineY);
+    final lowerBounds = Rect.fromLTRB(-halfWidth, lineY, halfWidth, bottom);
+    _drawBackground(
+      canvas,
+      _upperBackground,
+      upperBounds,
+      upperBounds,
+      cropFromBottom: true,
+    );
+    _drawBackground(canvas, _lowerBackground, lowerBounds, lowerBounds);
     super.render(canvas);
     final paint = Paint()
       ..color = const Color(ArenaComponentConstants.dangerLineColorValue);
-    final lineY =
-        -height / ArenaComponentConstants.halfDimensionDivisor +
-        topInset +
-        ArenaComponentConstants.dangerLineOffset;
     for (
-      var x = -width / ArenaComponentConstants.halfDimensionDivisor;
-      x <= width / ArenaComponentConstants.halfDimensionDivisor;
+      var x = -halfWidth;
+      x <= halfWidth;
       x += ArenaComponentConstants.dangerDotSpacing
     ) {
       canvas.drawCircle(
@@ -115,18 +138,15 @@ class ArenaComponent extends BodyComponent {
     }
   }
 
-  void _drawDangerAreaBackground(Canvas canvas) {
-    final image = _dangerAreaBackground;
+  void _drawBackground(
+    Canvas canvas,
+    Image? image,
+    Rect destination,
+    Rect clip, {
+    bool cropFromBottom = false,
+  }) {
     if (image == null) return;
 
-    final top = -height / ArenaComponentConstants.halfDimensionDivisor;
-    final lineY = top + topInset + ArenaComponentConstants.dangerLineOffset;
-    final destination = Rect.fromLTRB(
-      -width / ArenaComponentConstants.halfDimensionDivisor,
-      top,
-      width / ArenaComponentConstants.halfDimensionDivisor,
-      lineY,
-    );
     final sourceWidth = image.width.toDouble();
     final sourceHeight = image.height.toDouble();
     final sourceAspect = sourceWidth / sourceHeight;
@@ -140,17 +160,23 @@ class ArenaComponent extends BodyComponent {
           )
         : Rect.fromLTWH(
             0,
-            (sourceHeight - sourceWidth / destinationAspect) / 2,
+            cropFromBottom
+                ? sourceHeight - sourceWidth / destinationAspect
+                : (sourceHeight - sourceWidth / destinationAspect) / 2,
             sourceWidth,
             sourceWidth / destinationAspect,
           );
 
-    canvas.drawImageRect(
-      image,
-      sourceRect,
-      destination,
-      Paint()..filterQuality = FilterQuality.medium,
-    );
+    canvas
+      ..save()
+      ..clipRect(clip)
+      ..drawImageRect(
+        image,
+        sourceRect,
+        destination,
+        Paint()..filterQuality = FilterQuality.medium,
+      )
+      ..restore();
   }
 
   /// 中心位置と半寸法を指定した長方形の物理形状を作成します。

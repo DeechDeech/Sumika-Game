@@ -106,6 +106,21 @@ void main() {
     expect(kinds.last.next, isNull);
   });
 
+  test('fruit outline width scales with fruit size', () {
+    final kinds = FruitKind.values;
+
+    for (var index = 1; index < kinds.length; index++) {
+      expect(
+        kinds[index].outlineWidth,
+        greaterThan(kinds[index - 1].outlineWidth),
+      );
+      expect(
+        kinds[index].outlineWidth / kinds[index].radius,
+        closeTo(FruitKindConstants.outlineWidthRatio, 0.000001),
+      );
+    }
+  });
+
   test('next fruit is separate from the currently selected fruit', () {
     final game = SumikaGame();
     final startingKinds = FruitKind.values.take(
@@ -160,9 +175,11 @@ void main() {
       tester.getCenter(find.byKey(GameHeaderConstants.nextFruitKey)),
       fruitCenter,
     );
-    final fruitDecoration = tester
-        .widget<Container>(find.byKey(GameHeaderConstants.nextFruitKey))
-        .foregroundDecoration! as BoxDecoration;
+    final fruitDecoration =
+        tester
+                .widget<Container>(find.byKey(GameHeaderConstants.nextFruitKey))
+                .foregroundDecoration!
+            as BoxDecoration;
     expect(fruitDecoration.border!.top.color, FruitKind.fruit05.color);
     final largestFruitSize = tester.getSize(
       find.byKey(GameHeaderConstants.nextFruitKey),
@@ -174,13 +191,17 @@ void main() {
     );
   });
 
-  test('ship background is included in the asset manifest', () async {
+  test('game images are included in the asset manifest', () async {
     final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+    final assetPaths = manifest.listAssets().toSet();
 
-    expect(
-      manifest.listAssets(),
-      contains('assets/images/backgrounds/ship.png'),
-    );
+    expect(assetPaths, contains('assets/images/backgrounds/ship_original.png'));
+    expect(assetPaths, contains('assets/images/backgrounds/ship.png'));
+    expect(assetPaths, contains('assets/images/backgrounds/deck.png'));
+    for (final kind in FruitKind.values) {
+      expect(assetPaths, contains('assets/images/${kind.imageAsset}'));
+      expect(assetPaths, contains('assets/images/${kind.closedEyeAsset}'));
+    }
   });
 
   testWidgets(WidgetTestConstants.sliderTestName, (tester) async {
@@ -233,7 +254,9 @@ void main() {
     );
   });
 
-  testWidgets('fruit drops at the drag release position', (tester) async {
+  testWidgets('fruit can be dragged when starting over another fruit', (
+    tester,
+  ) async {
     final droppedKinds = <FruitKind>[];
     final game = SumikaGame(onFruitDropped: droppedKinds.add);
     const gameSize = Size(400, 600);
@@ -244,22 +267,25 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(
-          body: GameWidget<SumikaGame>(game: game),
-        ),
+        home: Scaffold(body: GameWidget<SumikaGame>(game: game)),
       ),
     );
     await tester.runAsync(() async {
       await game.toBeLoaded();
     });
+    game.world.add(
+      FruitComponent(
+        kind: FruitKind.fruit01,
+        position: Vector2.zero(),
+        onFruitContact: (_, _) {},
+      ),
+    );
     await tester.pump(const Duration(milliseconds: 16));
 
     final gameBounds = tester.getRect(find.byType(GameWidget<SumikaGame>));
-    final gesture = await tester.startGesture(
-      Offset(gameBounds.left + gameSize.width * 0.3, gameBounds.top + 40),
-    );
+    final gesture = await tester.startGesture(gameBounds.center);
     await gesture.moveTo(
-      Offset(gameBounds.left + gameSize.width * 0.7, gameBounds.top + 40),
+      Offset(gameBounds.left + gameSize.width * 0.7, gameBounds.center.dy),
     );
     await tester.pump(const Duration(milliseconds: 16));
 

@@ -2,6 +2,7 @@ import 'dart:ui';
 
 abstract final class FruitKindConstants {
   static const double logicalPixelsPerWorldUnit = 12;
+  static const double outlineWidthRatio = 0.04;
 
   static const String fruit01Label = 'ベリー';
   static const String fruit02Label = 'プラム';
@@ -147,8 +148,12 @@ enum FruitKind {
   final double mass;
   final String imageAsset;
 
+  String get closedEyeAsset => 'fruits/close/${imageAsset.split('/').last}';
+
   /// 32 bit 整数で定義した色を Flutter の Color に変換します。
   Color get color => Color(colorValue);
+
+  double get outlineWidth => radius * FruitKindConstants.outlineWidthRatio;
 
   /// 合体後の種類を返します。最大サイズの場合は null です。
   FruitKind? get next {

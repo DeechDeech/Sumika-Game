@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 
@@ -74,6 +75,7 @@ class SumikaGame extends Forge2DGame
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+    unawaited(_preloadFruitImages());
     final worldSize = _worldSize;
     await world.add(
       ArenaComponent(
@@ -88,6 +90,12 @@ class SumikaGame extends Forge2DGame
     );
     world.add(_dropShip!);
     _moveDropShip(0);
+  }
+
+  Future<void> _preloadFruitImages() async {
+    await Future.wait(
+      FruitKind.values.map((kind) => images.load(kind.imageAsset)),
+    );
   }
 
   /// 押した位置へプレビューを移動し、離すまで投下位置を追跡します。

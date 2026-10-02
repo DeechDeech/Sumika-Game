@@ -9,7 +9,8 @@ import 'fruit_kind.dart';
 abstract final class DropShipConstants {
   static const double dropLineGap = 0.16;
   static const double fruitComponentPadding = 0.2;
-  static const double fruitOutlineWidth = 0.09;
+  static const double blinkIntervalSeconds = 3.5;
+  static const double blinkDurationSeconds = 0.14;
 }
 
 class DropShipComponent extends PositionComponent
@@ -22,7 +23,10 @@ class DropShipComponent extends PositionComponent
 
   FruitKind _fruitKind;
   Image? _fruitImage;
+  Image? _closedEyeImage;
   int _imageRequest = 0;
+  double _blinkTimer = DropShipConstants.blinkIntervalSeconds;
+  bool _isBlinking = false;
 
   Vector2 get fruitCenterPosition => Vector2(position.x, position.y);
 
@@ -34,6 +38,10 @@ class DropShipComponent extends PositionComponent
     if (_fruitKind != fruitKind) {
       _fruitKind = fruitKind;
       _updateSize();
+      _fruitImage = null;
+      _closedEyeImage = null;
+      _isBlinking = false;
+      _blinkTimer = DropShipConstants.blinkIntervalSeconds;
       unawaited(_loadFruitImage());
     }
     position.setValues(x, lineY - size.y / 2 - DropShipConstants.dropLineGap);
@@ -56,10 +64,36 @@ class DropShipComponent extends PositionComponent
     final kind = _fruitKind;
     try {
       final image = await game.images.load(kind.imageAsset);
-      if (request == _imageRequest) _fruitImage = image;
+      if (request != _imageRequest) return;
+      _fruitImage = image;
+      unawaited(_loadClosedEyeImage(kind, request));
     } on Object {
-      if (request == _imageRequest) _fruitImage = null;
+      if (request != _imageRequest) return;
+      _fruitImage = null;
     }
+  }
+
+  Future<void> _loadClosedEyeImage(FruitKind kind, int request) async {
+    try {
+      final image = await game.images.load(kind.closedEyeAsset);
+      if (request == _imageRequest) _closedEyeImage = image;
+    } on Object {
+      if (request == _imageRequest) _closedEyeImage = null;
+    }
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (_closedEyeImage == null) return;
+
+    _blinkTimer -= dt;
+    if (_blinkTimer > 0) return;
+
+    _isBlinking = !_isBlinking;
+    _blinkTimer = _isBlinking
+        ? DropShipConstants.blinkDurationSeconds
+        : DropShipConstants.blinkIntervalSeconds;
   }
 
   @override
@@ -69,7 +103,9 @@ class DropShipComponent extends PositionComponent
     final radius = _fruitKind.radius;
     final fruitCenter = Offset(width / 2, height / 2);
     final fruitRect = Rect.fromCircle(center: fruitCenter, radius: radius);
-    final fruitImage = _fruitImage;
+    final fruitImage = _isBlinking
+        ? _closedEyeImage ?? _fruitImage
+        : _fruitImage;
     if (fruitImage == null) {
       canvas.drawCircle(fruitCenter, radius, Paint()..color = _fruitKind.color);
     } else {
@@ -94,7 +130,7 @@ class DropShipComponent extends PositionComponent
       Paint()
         ..color = _fruitKind.color
         ..style = PaintingStyle.stroke
-        ..strokeWidth = DropShipConstants.fruitOutlineWidth,
+        ..strokeWidth = _fruitKind.outlineWidth,
     );
   }
 }

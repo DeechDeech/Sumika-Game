@@ -67,7 +67,10 @@ flutter:
     - assets/images/
     - assets/images/branding/sumika_logo.png
     - assets/images/backgrounds/ship.png
+    - assets/images/backgrounds/ship_original.png
+    - assets/images/backgrounds/deck.png
     - assets/images/fruits/
+    - assets/images/fruits/close/
 
 flutter_launcher_icons:
   android: true
