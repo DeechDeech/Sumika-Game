@@ -73,8 +73,6 @@ flutter:
     - assets/images/backgrounds/deck.png
     - assets/images/fruits/
     - assets/images/fruits/close/
-    - assets/images/fruits/outlined/
-    - assets/images/fruits/outlined/close/
 
 flutter_launcher_icons:
   android: true

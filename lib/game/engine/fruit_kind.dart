@@ -131,12 +131,6 @@ enum FruitKind {
   String get closedEyeAsset =>
       '${GameContextConstants.closedEyeAssetDirectory}${GameContextConstants.assetPathSeparator}$imageFileName';
 
-  String get outlinedAsset =>
-      '${GameContextConstants.outlinedFruitAssetDirectory}${GameContextConstants.assetPathSeparator}$imageFileName';
-
-  String get outlinedClosedEyeAsset =>
-      '${GameContextConstants.outlinedClosedEyeAssetDirectory}${GameContextConstants.assetPathSeparator}$imageFileName';
-
   /// 32 bit 整数で定義した色を Flutter の Color に変換します。
   Color get color => Color(colorValue);
 

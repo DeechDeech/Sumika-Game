@@ -8,15 +8,10 @@ abstract final class GameContextConstants {
   static const String imageFileExtension = '.png';
   static const String imageNumberPaddingCharacter = '0';
   static const String closedEyeDirectoryName = 'close';
-  static const String outlinedDirectoryName = 'outlined';
   static const int firstFruitImageNumber = 1;
   static const int fruitImageNumberWidth = 2;
   static const String closedEyeAssetDirectory =
       '$fruitAssetDirectory$assetPathSeparator$closedEyeDirectoryName';
-  static const String outlinedFruitAssetDirectory =
-      '$fruitAssetDirectory$assetPathSeparator$outlinedDirectoryName';
-  static const String outlinedClosedEyeAssetDirectory =
-      '$outlinedFruitAssetDirectory$assetPathSeparator$closedEyeDirectoryName';
   static const double fruitOutlineWidthRatio = 0.04;
   static const double dropPreviewBlinkIntervalSeconds = 3.5;
   static const double dropPreviewBlinkDurationSeconds = 0.14;
