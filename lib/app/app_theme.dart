@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../game/game_content.dart';
+
 abstract final class AppTheme {
-  static const String appTitle = 'スミカゲーム';
+  static const String appTitle = GameContent.gameTitle;
   static const Color surface = Color(0xFFF2F3E9);
   static const Color ink = Color(0xFF263A35);
   static const Color muted = Color(0xFF728078);

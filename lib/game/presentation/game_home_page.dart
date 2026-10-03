@@ -6,6 +6,7 @@ import '../audio/game_audio_controller.dart';
 import '../engine/sumika_game.dart';
 import 'game_home_page_layout.dart';
 import 'widgets/game_audio_settings_sheet.dart';
+import 'widgets/game_over_dialog.dart';
 
 class GameHomePage extends StatefulWidget {
   /// ゲーム画面を表示するルートページを作成します。
@@ -61,18 +62,16 @@ class _GameHomePageState extends State<GameHomePage> {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('ゲームオーバー'),
-        content: Text('スコア: $finalScore'),
-        actions: [
-          FilledButton(
-            onPressed: () {
-              _game.reset();
-              Navigator.of(dialogContext).pop();
-            },
-            child: const Text('もう一度遊ぶ'),
-          ),
-        ],
+      builder: (dialogContext) => GameOverDialog(
+        finalScore: finalScore,
+        onClose: () {
+          _game.enableDropPreviewMovementAfterGameOver();
+          Navigator.of(dialogContext).pop();
+        },
+        onRetry: () {
+          _game.reset();
+          Navigator.of(dialogContext).pop();
+        },
       ),
     );
   }

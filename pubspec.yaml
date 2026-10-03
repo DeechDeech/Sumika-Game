@@ -66,40 +66,44 @@ flutter:
     - assets/audio/
     - assets/images/
     - assets/images/branding/sumika_logo.png
+    - assets/images/branding/app_icon.png
+    - assets/images/branding/title_logo.png
     - assets/images/backgrounds/ship.png
     - assets/images/backgrounds/ship_original.png
     - assets/images/backgrounds/deck.png
     - assets/images/fruits/
     - assets/images/fruits/close/
+    - assets/images/fruits/outlined/
+    - assets/images/fruits/outlined/close/
 
 flutter_launcher_icons:
   android: true
   adaptive_icon_background: "#F2F3E9"
-  adaptive_icon_foreground: assets/images/branding/sumika_logo.png
+  adaptive_icon_foreground: assets/images/branding/app_icon.png
   ios: true
-  image_path: assets/images/branding/sumika_logo.png
+  image_path: assets/images/branding/app_icon.png
   remove_alpha_ios: true
   web:
     generate: true
-    image_path: assets/images/branding/sumika_logo.png
+    image_path: assets/images/branding/app_icon.png
     background_color: "#F2F3E9"
     theme_color: "#CB654C"
   windows:
     generate: true
-    image_path: assets/images/branding/sumika_logo.png
+    image_path: assets/images/branding/app_icon.png
     icon_size: 48
   macos:
     generate: true
-    image_path: assets/images/branding/sumika_logo.png
+    image_path: assets/images/branding/app_icon.png
 
 flutter_native_splash:
   color: "#F2F3E9"
-  image: assets/images/branding/sumika_logo.png
+  image: assets/images/branding/splash.png
   android: true
   ios: true
   android_12:
     color: "#F2F3E9"
-    image: assets/images/branding/sumika_logo.png
+    image: assets/images/branding/splash.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

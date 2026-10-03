@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../engine/game_context.dart';
 import '../engine/sumika_game.dart';
 import 'game_home_page_constants.dart';
 import 'widgets/game_board.dart';
@@ -44,11 +45,23 @@ class GameHomePageLayout extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      GameHeader(nextFruit: game.nextFruit, score: game.score),
+                      GameHeader(
+                        nextFruit: game.nextFruit,
+                        score: game.score,
+                        isGameOver: game.isGameOver,
+                      ),
                       const SizedBox(
                         height: GameHomePageConstants.scoreToBoardSpacing,
                       ),
-                      Expanded(child: GameBoard(game: game)),
+                      Expanded(
+                        child: Center(
+                          child: AspectRatio(
+                            aspectRatio:
+                                GameContextConstants.gameFieldAspectRatio,
+                            child: GameBoard(game: game),
+                          ),
+                        ),
+                      ),
                       const SizedBox(
                         height: GameHomePageConstants.boardToControlsSpacing,
                       ),

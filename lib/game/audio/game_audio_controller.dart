@@ -35,6 +35,39 @@ abstract final class GameAudioConstants {
   };
 }
 
+abstract final class GameAudioLogMessages {
+  static const String mergeSoundPoolInitializationFailed =
+      'Merge sound pool initialization failed: ';
+  static const String mergeSoundPoolCleanupFailed =
+      'Merge sound pool cleanup failed: ';
+  static const String audioAssetLoadingTimedOut =
+      'Audio asset loading timed out: ';
+  static const String audioUnavailable =
+      'Audio playback is unavailable on this platform: ';
+  static const String audioAssetLoadingFailed = 'Audio asset loading failed: ';
+  static const String bgmPlayerPreparationTimedOut =
+      'BGM player preparation timed out: ';
+  static const String bgmUnavailable = 'BGM playback is unavailable: ';
+  static const String bgmPlaybackFailed = 'BGM playback failed: ';
+  static const String mergeSoundPoolPreparationTimedOut =
+      'Merge sound pool preparation timed out: ';
+  static const String soundEffectsUnavailable =
+      'Sound effects are unavailable: ';
+  static const String mergeSoundPoolPreparationFailed =
+      'Merge sound pool preparation failed: ';
+  static const String bgmStopUnavailable = 'BGM stop is unavailable: ';
+  static const String bgmStopTimedOut = 'BGM stop timed out: ';
+  static const String bgmStopFailed = 'BGM stop failed: ';
+  static const String bgmVolumeControlUnavailable =
+      'BGM volume control is unavailable: ';
+  static const String bgmVolumeUpdateTimedOut = 'BGM volume update timed out: ';
+  static const String bgmVolumeUpdateFailed = 'BGM volume update failed: ';
+  static const String mergeSoundPlaybackTimedOut =
+      'Merge sound playback timed out: ';
+  static const String mergeSoundPlaybackFailed =
+      'Merge sound playback failed: ';
+}
+
 class GameAudioController with WidgetsBindingObserver {
   /// コントローラーをアプリ内で一つだけ使うための非公開コンストラクターです。
   GameAudioController._() {
@@ -96,7 +129,9 @@ class GameAudioController with WidgetsBindingObserver {
       try {
         await loading;
       } on Object catch (error) {
-        debugPrint('Merge sound pool initialization failed: $error');
+        debugPrint(
+          '${GameAudioLogMessages.mergeSoundPoolInitializationFailed}$error',
+        );
       }
     }
 
@@ -106,7 +141,7 @@ class GameAudioController with WidgetsBindingObserver {
     try {
       await Future.wait(pools.map((pool) => pool.dispose()));
     } on Object catch (error) {
-      debugPrint('Merge sound pool cleanup failed: $error');
+      debugPrint('${GameAudioLogMessages.mergeSoundPoolCleanupFailed}$error');
     }
   }
 
@@ -121,17 +156,17 @@ class GameAudioController with WidgetsBindingObserver {
     } on TimeoutException catch (error) {
       _bgmAvailable = false;
       _seAvailable = false;
-      debugPrint('Audio asset loading timed out: $error');
+      debugPrint('${GameAudioLogMessages.audioAssetLoadingTimedOut}$error');
       return;
     } on MissingPluginException catch (error) {
       _bgmAvailable = false;
       _seAvailable = false;
-      debugPrint('Audio playback is unavailable on this platform: $error');
+      debugPrint('${GameAudioLogMessages.audioUnavailable}$error');
       return;
     } on PlatformException catch (error) {
       _bgmAvailable = false;
       _seAvailable = false;
-      debugPrint('Audio asset loading failed: $error');
+      debugPrint('${GameAudioLogMessages.audioAssetLoadingFailed}$error');
       return;
     }
 
@@ -162,13 +197,13 @@ class GameAudioController with WidgetsBindingObserver {
       }
     } on TimeoutException catch (error) {
       _bgmAvailable = false;
-      debugPrint('BGM player preparation timed out: $error');
+      debugPrint('${GameAudioLogMessages.bgmPlayerPreparationTimedOut}$error');
     } on MissingPluginException catch (error) {
       _bgmAvailable = false;
-      debugPrint('BGM playback is unavailable: $error');
+      debugPrint('${GameAudioLogMessages.bgmUnavailable}$error');
     } on PlatformException catch (error) {
       _bgmAvailable = false;
-      debugPrint('BGM playback failed: $error');
+      debugPrint('${GameAudioLogMessages.bgmPlaybackFailed}$error');
     }
   }
 
@@ -180,13 +215,17 @@ class GameAudioController with WidgetsBindingObserver {
       await (_soundPoolLoading ??= _createMergeSoundPools());
     } on TimeoutException catch (error) {
       _seAvailable = false;
-      debugPrint('Merge sound pool preparation timed out: $error');
+      debugPrint(
+        '${GameAudioLogMessages.mergeSoundPoolPreparationTimedOut}$error',
+      );
     } on MissingPluginException catch (error) {
       _seAvailable = false;
-      debugPrint('Sound effects are unavailable: $error');
+      debugPrint('${GameAudioLogMessages.soundEffectsUnavailable}$error');
     } on PlatformException catch (error) {
       _seAvailable = false;
-      debugPrint('Merge sound pool preparation failed: $error');
+      debugPrint(
+        '${GameAudioLogMessages.mergeSoundPoolPreparationFailed}$error',
+      );
     }
   }
 
@@ -212,12 +251,12 @@ class GameAudioController with WidgetsBindingObserver {
       await FlameAudio.bgm.stop();
     } on MissingPluginException catch (error) {
       _bgmAvailable = false;
-      debugPrint('BGM stop is unavailable: $error');
+      debugPrint('${GameAudioLogMessages.bgmStopUnavailable}$error');
     } on TimeoutException catch (error) {
       _bgmAvailable = false;
-      debugPrint('BGM stop timed out: $error');
+      debugPrint('${GameAudioLogMessages.bgmStopTimedOut}$error');
     } on PlatformException catch (error) {
-      debugPrint('BGM stop failed: $error');
+      debugPrint('${GameAudioLogMessages.bgmStopFailed}$error');
     }
   }
 
@@ -261,12 +300,12 @@ class GameAudioController with WidgetsBindingObserver {
       await FlameAudio.bgm.audioPlayer.setVolume(bgmVolume.value);
     } on MissingPluginException catch (error) {
       _bgmAvailable = false;
-      debugPrint('BGM volume control is unavailable: $error');
+      debugPrint('${GameAudioLogMessages.bgmVolumeControlUnavailable}$error');
     } on TimeoutException catch (error) {
       _bgmAvailable = false;
-      debugPrint('BGM volume update timed out: $error');
+      debugPrint('${GameAudioLogMessages.bgmVolumeUpdateTimedOut}$error');
     } on PlatformException catch (error) {
-      debugPrint('BGM volume update failed: $error');
+      debugPrint('${GameAudioLogMessages.bgmVolumeUpdateFailed}$error');
     }
   }
 
@@ -293,13 +332,13 @@ class GameAudioController with WidgetsBindingObserver {
       await _mergeSoundPools[soundAsset]?.start(volume: seVolume.value);
     } on MissingPluginException catch (error) {
       _seAvailable = false;
-      debugPrint('Sound effects are unavailable: $error');
+      debugPrint('${GameAudioLogMessages.soundEffectsUnavailable}$error');
     } on TimeoutException catch (error) {
       _seAvailable = false;
-      debugPrint('Merge sound playback timed out: $error');
+      debugPrint('${GameAudioLogMessages.mergeSoundPlaybackTimedOut}$error');
     } on PlatformException catch (error) {
       _seAvailable = false;
-      debugPrint('Merge sound playback failed: $error');
+      debugPrint('${GameAudioLogMessages.mergeSoundPlaybackFailed}$error');
     }
   }
 

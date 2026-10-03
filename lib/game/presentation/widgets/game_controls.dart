@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
+import '../../game_content.dart';
 
 abstract final class GameControlsConstants {
   static const double touchIconSize = 17;
@@ -13,9 +14,6 @@ abstract final class GameControlsConstants {
   static const double settingsButtonSize = 39;
   static const double settingsButtonRadius = 13;
   static const double settingsIconSize = 19;
-  static const String settingsTooltip = '音量設定';
-  static const String dropHint = '落とす位置をタップ';
-  static const String resetLabel = 'やり直す';
 }
 
 class GameControls extends StatelessWidget {
@@ -42,7 +40,7 @@ class GameControls extends StatelessWidget {
         const SizedBox(width: GameControlsConstants.touchHintGap),
         const Expanded(
           child: Text(
-            GameControlsConstants.dropHint,
+            GameContent.dropHint,
             style: TextStyle(
               color: AppTheme.muted,
               fontSize: GameControlsConstants.touchHintFontSize,
@@ -56,7 +54,7 @@ class GameControls extends StatelessWidget {
             Icons.refresh_rounded,
             size: GameControlsConstants.resetIconSize,
           ),
-          label: const Text(GameControlsConstants.resetLabel),
+          label: const Text(GameContent.resetButton),
           style: FilledButton.styleFrom(
             foregroundColor: AppTheme.ink,
             backgroundColor: AppTheme.controlSurface,
@@ -69,7 +67,7 @@ class GameControls extends StatelessWidget {
         const SizedBox(width: GameControlsConstants.buttonGap),
         IconButton.filledTonal(
           onPressed: onOpenAudioSettings,
-          tooltip: GameControlsConstants.settingsTooltip,
+          tooltip: GameContent.audioSettings,
           icon: const Icon(
             Icons.tune_rounded,
             size: GameControlsConstants.settingsIconSize,

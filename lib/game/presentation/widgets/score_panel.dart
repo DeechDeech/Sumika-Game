@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../../app/app_theme.dart';
+import '../../game_content.dart';
 
 abstract final class ScorePanelConstants {
   static const double labelFontSize = 10;
@@ -11,9 +12,6 @@ abstract final class ScorePanelConstants {
   static const double scoreLineHeight = 1;
   static const double hintFontSize = 11;
   static const int scoreDigits = 5;
-  static const String scorePaddingCharacter = '0';
-  static const String scoreLabel = 'SCORE';
-  static const String mergeHint = '同じフルーツを合わせよう';
 }
 
 class ScorePanel extends StatelessWidget {
@@ -29,7 +27,7 @@ class ScorePanel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: <Widget>[
         const Text(
-          ScorePanelConstants.scoreLabel,
+          GameContent.scoreLabel,
           style: TextStyle(
             color: AppTheme.muted,
             fontSize: ScorePanelConstants.labelFontSize,
@@ -43,7 +41,7 @@ class ScorePanel extends StatelessWidget {
           builder: (context, value, _) => Text(
             value.toString().padLeft(
               ScorePanelConstants.scoreDigits,
-              ScorePanelConstants.scorePaddingCharacter,
+              GameContent.scorePaddingCharacter,
             ),
             style: const TextStyle(
               color: AppTheme.ink,

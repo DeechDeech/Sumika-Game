@@ -10,6 +10,7 @@ import 'arena_component.dart';
 import 'fruit_drop_cooldown.dart';
 import 'fruit_component.dart';
 import 'fruit_kind.dart';
+import 'game_context.dart';
 import 'drop_ship_component.dart';
 
 abstract final class SumikaGameConstants {
@@ -30,8 +31,19 @@ abstract final class SumikaGameConstants {
   static const FruitKind firstFruit = FruitKind.fruit01;
 }
 
+@visibleForTesting
+int scoreAfterMerge({
+  required int currentScore,
+  required int mergeScore,
+  required bool gameOver,
+}) {
+  if (gameOver) return currentScore;
+
+  return min(currentScore + mergeScore, SumikaGameConstants.maximumScore);
+}
+
 class SumikaGame extends Forge2DGame
-  with MultiTouchDragDetector, MouseMovementDetector {
+    with MultiTouchDragDetector, MouseMovementDetector {
   /// 下向きの重力とゲーム用カメラを設定した物理ゲームを作成します。
   SumikaGame({this.onFruitDropped, this.onFruitMerged, this.onGameOver})
     : super(
@@ -59,13 +71,14 @@ class SumikaGame extends Forge2DGame
   late final ValueNotifier<FruitKind> nextFruit = ValueNotifier<FruitKind>(
     _randomStartingFruit(),
   );
+  final ValueNotifier<bool> isGameOver = ValueNotifier<bool>(false);
   final List<(FruitComponent, FruitComponent)> _pendingMerges = [];
   final FruitDropCooldown _dropCooldown = FruitDropCooldown();
   DropShipComponent? _dropShip;
   double? _lastDropX;
   int? _activeDropPointer;
   double _dragTargetX = 0;
-  bool _gameOver = false;
+  bool _dropPreviewInputEnabledAfterGameOver = false;
 
   /// ゲーム領域の背景色を返します。
   @override
@@ -94,14 +107,20 @@ class SumikaGame extends Forge2DGame
 
   Future<void> _preloadFruitImages() async {
     await Future.wait(
-      FruitKind.values.map((kind) => images.load(kind.imageAsset)),
+      FruitKind.values
+          .expand((kind) => [kind.imageAsset, kind.closedEyeAsset])
+          .map(images.load),
     );
   }
 
   /// 押した位置へプレビューを移動し、離すまで投下位置を追跡します。
   @override
   void onDragStart(int pointerId, DragStartInfo info) {
-    if (_gameOver || _dropShip == null || !_dropCooldown.isReady) return;
+    if (_dropShip == null ||
+        (isGameOver.value && !_dropPreviewInputEnabledAfterGameOver) ||
+        (!isGameOver.value && !_dropCooldown.isReady)) {
+      return;
+    }
 
     _activeDropPointer = pointerId;
     _dragTargetX = screenToWorld(info.eventPosition.widget).x;
@@ -110,7 +129,10 @@ class SumikaGame extends Forge2DGame
 
   @override
   void onDragUpdate(int pointerId, DragUpdateInfo info) {
-    if (_activeDropPointer != pointerId || _gameOver) return;
+    if (_activeDropPointer != pointerId ||
+        (isGameOver.value && !_dropPreviewInputEnabledAfterGameOver)) {
+      return;
+    }
 
     _dragTargetX = screenToWorld(info.eventPosition.widget).x;
     _moveDropShip(_dragTargetX);
@@ -121,7 +143,7 @@ class SumikaGame extends Forge2DGame
     if (_activeDropPointer != pointerId) return;
 
     _activeDropPointer = null;
-    if (!_gameOver) _dropFruit(_dragTargetX);
+    if (!isGameOver.value) _dropFruit(_dragTargetX);
   }
 
   @override
@@ -131,7 +153,11 @@ class SumikaGame extends Forge2DGame
 
   @override
   void onMouseMove(PointerHoverInfo info) {
-    if (_gameOver || _dropShip == null || _activeDropPointer != null) return;
+    if ((isGameOver.value && !_dropPreviewInputEnabledAfterGameOver) ||
+        _dropShip == null ||
+        _activeDropPointer != null) {
+      return;
+    }
     _dragTargetX = screenToWorld(info.eventPosition.widget).x;
     _moveDropShip(_dragTargetX);
   }
@@ -151,7 +177,9 @@ class SumikaGame extends Forge2DGame
     _dropCooldown.reset();
     _lastDropX = null;
     _activeDropPointer = null;
-    _gameOver = false;
+    isGameOver.value = false;
+    _dropPreviewInputEnabledAfterGameOver = false;
+    _dropShip?.setGameOver(false);
     for (final fruit in _fruits) {
       fruit.removeFromParent();
     }
@@ -164,6 +192,13 @@ class SumikaGame extends Forge2DGame
   /// 物理ワールドに現在登録されている果実だけを取り出します。
   Iterable<FruitComponent> get _fruits =>
       world.children.whereType<FruitComponent>();
+
+  @visibleForTesting
+  double? get dropPreviewX => _dropShip?.position.x;
+
+  void enableDropPreviewMovementAfterGameOver() {
+    if (isGameOver.value) _dropPreviewInputEnabledAfterGameOver = true;
+  }
 
   /// カメラのズームを考慮した、画面サイズのワールド座標表現です。
   Vector2 get _worldSize =>
@@ -184,6 +219,8 @@ class SumikaGame extends Forge2DGame
 
   /// 果実の大きさに合わせて横位置を制限し、盤面上端から投下します。
   void _dropFruit(double targetX) {
+    if (isGameOver.value) return;
+
     final kind = currentFruit.value;
     final worldSize = _worldSize;
     final margin = kind.radius + SumikaGameConstants.horizontalDropMargin;
@@ -253,9 +290,10 @@ class SumikaGame extends Forge2DGame
       final mergeScore =
           (first.kind.index + SumikaGameConstants.scoreTierOffset) *
           SumikaGameConstants.scorePerTier;
-      score.value = min(
-        score.value + mergeScore,
-        SumikaGameConstants.maximumScore,
+      score.value = scoreAfterMerge(
+        currentScore: score.value,
+        mergeScore: mergeScore,
+        gameOver: isGameOver.value,
       );
       final nextKind = first.kind.next;
       if (nextKind == null) {
@@ -277,6 +315,8 @@ class SumikaGame extends Forge2DGame
           kind: nextKind,
           position: mergePosition,
           onFruitContact: _queueMerge,
+          closeEyesUntilSettled:
+              GameContextConstants.mergedFruitStartsEyesClosed,
         ),
       );
       onFruitMerged?.call(first.kind);
@@ -285,7 +325,7 @@ class SumikaGame extends Forge2DGame
   }
 
   void _checkGameOver() {
-    if (_gameOver) return;
+    if (isGameOver.value) return;
     final hasSettledFruitAboveLine = _fruits.any(
       (fruit) =>
           fruit.isMounted &&
@@ -296,7 +336,11 @@ class SumikaGame extends Forge2DGame
     );
     if (!hasSettledFruitAboveLine) return;
 
-    _gameOver = true;
+    isGameOver.value = true;
+    for (final fruit in _fruits) {
+      fruit.setEyesClosed(false);
+    }
+    _dropShip?.setGameOver(true);
     onGameOver?.call(score.value);
   }
 }

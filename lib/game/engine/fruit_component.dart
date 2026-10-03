@@ -3,7 +3,18 @@ import 'dart:ui';
 
 import 'package:flame_forge2d/flame_forge2d.dart';
 
+import 'game_context.dart';
 import 'fruit_kind.dart';
+
+class FruitSettledEyeTimer {
+  double _remainingSeconds =
+      GameContextConstants.mergedFruitClosedDurationSeconds;
+
+  bool advance(double dt) {
+    _remainingSeconds -= dt;
+    return _remainingSeconds <= 0;
+  }
+}
 
 abstract final class FruitComponentConstants {
   static const double friction = 0.42;
@@ -17,7 +28,10 @@ class FruitComponent extends BodyComponent with ContactCallbacks {
     required this.kind,
     required Vector2 position,
     required this.onFruitContact,
-  }) : super(
+    bool closeEyesUntilSettled = false,
+  }) : _eyesClosed = closeEyesUntilSettled,
+       _opensEyesWhenSettled = closeEyesUntilSettled,
+       super(
          bodyDef: BodyDef(type: BodyType.dynamic, position: position),
          fixtureDefs: [
            FixtureDef(
@@ -35,6 +49,12 @@ class FruitComponent extends BodyComponent with ContactCallbacks {
   onFruitContact;
   bool isMerging = false;
   Image? _image;
+  Image? _closedEyeImage;
+  bool _eyesClosed;
+  bool _opensEyesWhenSettled;
+  final FruitSettledEyeTimer _settledEyeTimer = FruitSettledEyeTimer();
+
+  bool get eyesClosed => _eyesClosed;
 
   bool overlapsAt(Vector2 candidatePosition, FruitKind candidateKind) {
     return circlesOverlap(
@@ -64,11 +84,32 @@ class FruitComponent extends BodyComponent with ContactCallbacks {
     } on Object {
       _image = null;
     }
+    try {
+      _closedEyeImage = await game.images.load(kind.closedEyeAsset);
+    } on Object {
+      _closedEyeImage = null;
+    }
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (!_opensEyesWhenSettled || !_settledEyeTimer.advance(dt)) {
+      return;
+    }
+
+    _eyesClosed = false;
+    _opensEyesWhenSettled = false;
+  }
+
+  void setEyesClosed(bool closed) {
+    _eyesClosed = closed;
+    _opensEyesWhenSettled = false;
   }
 
   @override
   void render(Canvas canvas) {
-    final image = _image;
+    final image = _eyesClosed ? _closedEyeImage ?? _image : _image;
     if (image == null) {
       super.render(canvas);
       _drawOutline(canvas);

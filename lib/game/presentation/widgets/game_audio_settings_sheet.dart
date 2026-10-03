@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../audio/game_audio_controller.dart';
 import '../../../app/app_theme.dart';
+import '../../game_content.dart';
 
 abstract final class GameAudioSettingsConstants {
   static const double horizontalInset = 24;
@@ -16,10 +17,6 @@ abstract final class GameAudioSettingsConstants {
   static const double sliderLabelFontSize = 14;
   static const int sliderDivisions = 20;
   static const double percentScale = 100;
-  static const String title = '音量設定';
-  static const String bgmLabel = 'BGM';
-  static const String seLabel = '効果音';
-  static const String percentSuffix = '%';
 }
 
 class GameAudioSettingsSheet extends StatelessWidget {
@@ -44,7 +41,7 @@ class GameAudioSettingsSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              GameAudioSettingsConstants.title,
+              GameContent.audioSettings,
               style: TextStyle(
                 color: AppTheme.ink,
                 fontSize: GameAudioSettingsConstants.titleFontSize,
@@ -53,14 +50,14 @@ class GameAudioSettingsSheet extends StatelessWidget {
             ),
             const SizedBox(height: GameAudioSettingsConstants.titleToSliderGap),
             _AudioVolumeSlider(
-              label: GameAudioSettingsConstants.bgmLabel,
+              label: GameContent.bgmLabel,
               volume: controller.bgmVolume,
               onChanged: controller.setBgmVolume,
               onChangeEnd: (_) => controller.flushBgmVolume(),
             ),
             const SizedBox(height: GameAudioSettingsConstants.sliderRowGap),
             _AudioVolumeSlider(
-              label: GameAudioSettingsConstants.seLabel,
+              label: GameContent.soundEffectLabel,
               volume: controller.seVolume,
               onChanged: controller.setSeVolume,
             ),
@@ -115,7 +112,7 @@ class _AudioVolumeSlider extends StatelessWidget {
           SizedBox(
             width: GameAudioSettingsConstants.percentageWidth,
             child: Text(
-              '${(value * GameAudioSettingsConstants.percentScale).round()}${GameAudioSettingsConstants.percentSuffix}',
+              '${(value * GameAudioSettingsConstants.percentScale).round()}${GameContent.percentSuffix}',
               textAlign: TextAlign.end,
               style: const TextStyle(color: AppTheme.muted),
             ),

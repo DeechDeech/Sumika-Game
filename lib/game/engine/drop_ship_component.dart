@@ -4,13 +4,12 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 
+import 'game_context.dart';
 import 'fruit_kind.dart';
 
 abstract final class DropShipConstants {
   static const double dropLineGap = 0.16;
   static const double fruitComponentPadding = 0.2;
-  static const double blinkIntervalSeconds = 3.5;
-  static const double blinkDurationSeconds = 0.14;
 }
 
 class DropShipComponent extends PositionComponent
@@ -25,8 +24,10 @@ class DropShipComponent extends PositionComponent
   Image? _fruitImage;
   Image? _closedEyeImage;
   int _imageRequest = 0;
-  double _blinkTimer = DropShipConstants.blinkIntervalSeconds;
+  double _blinkTimer = GameContextConstants.dropPreviewBlinkIntervalSeconds;
   bool _isBlinking = false;
+  bool _eyesForcedClosed = false;
+  bool _isGameOver = false;
 
   Vector2 get fruitCenterPosition => Vector2(position.x, position.y);
 
@@ -40,8 +41,6 @@ class DropShipComponent extends PositionComponent
       _updateSize();
       _fruitImage = null;
       _closedEyeImage = null;
-      _isBlinking = false;
-      _blinkTimer = DropShipConstants.blinkIntervalSeconds;
       unawaited(_loadFruitImage());
     }
     position.setValues(x, lineY - size.y / 2 - DropShipConstants.dropLineGap);
@@ -82,18 +81,26 @@ class DropShipComponent extends PositionComponent
     }
   }
 
+  void setGameOver(bool gameOver) {
+    _isGameOver = gameOver;
+    _eyesForcedClosed =
+        gameOver && GameContextConstants.closePreviewFruitsOnGameOver;
+    _isBlinking = false;
+    _blinkTimer = GameContextConstants.dropPreviewBlinkIntervalSeconds;
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
-    if (_closedEyeImage == null) return;
+    if (_isGameOver) return;
 
     _blinkTimer -= dt;
     if (_blinkTimer > 0) return;
 
     _isBlinking = !_isBlinking;
     _blinkTimer = _isBlinking
-        ? DropShipConstants.blinkDurationSeconds
-        : DropShipConstants.blinkIntervalSeconds;
+        ? GameContextConstants.dropPreviewBlinkDurationSeconds
+        : GameContextConstants.dropPreviewBlinkIntervalSeconds;
   }
 
   @override
@@ -103,7 +110,7 @@ class DropShipComponent extends PositionComponent
     final radius = _fruitKind.radius;
     final fruitCenter = Offset(width / 2, height / 2);
     final fruitRect = Rect.fromCircle(center: fruitCenter, radius: radius);
-    final fruitImage = _isBlinking
+    final fruitImage = _eyesForcedClosed || _isBlinking
         ? _closedEyeImage ?? _fruitImage
         : _fruitImage;
     if (fruitImage == null) {
